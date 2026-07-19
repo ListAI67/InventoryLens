@@ -8,6 +8,12 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.2.6] - 2026-07-19
+
+### Changed
+
+- Increased the single Graphic Builder back-frame watermark size while retaining its low-opacity treatment behind item artwork.
+
 ## [3.2.5] - 2026-07-19
 
 ### Fixed

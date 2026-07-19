@@ -517,10 +517,10 @@ function drawItemPanelWatermark(
   context.translate(rect.x + rect.width / 2, rect.y + rect.height * 0.52);
   context.rotate((-8 * Math.PI) / 180);
   context.fillStyle = "rgba(196,181,253,.12)";
-  context.font = `800 ${Math.max(11, Math.min(22, rect.width / 70))}px "Cascadia Mono", Consolas, monospace`;
+  context.font = `800 ${Math.max(16, Math.min(38, rect.width / 42))}px "Cascadia Mono", Consolas, monospace`;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(GRAPHIC_WATERMARK_TEXT, 0, 0, Math.max(1, rect.width * 0.48));
+  context.fillText(GRAPHIC_WATERMARK_TEXT, 0, 0, Math.max(1, rect.width * 0.64));
   context.restore();
 }
 
