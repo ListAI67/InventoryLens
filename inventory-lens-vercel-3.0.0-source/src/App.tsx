@@ -42,6 +42,8 @@ const IDLE_PROGRESS: ScanProgress = {
   message: "Ready to scan",
 };
 
+const SOURCE_REPOSITORY_URL = "https://github.com/ListAI67/InventoryLens";
+
 type ScanState = "idle" | "scanning" | "paused" | "done";
 type DashboardPage = "inventory" | "graphic";
 export type LimitedFilter = "all" | "limited" | "nonlimited";
@@ -541,7 +543,7 @@ function CategoryGroup({
   );
 
   return (
-    <details className="category-group" open>
+    <details className="category-group">
       <summary>
         <span className="summary-chevron">
           <Icon name="chevron" />
@@ -1320,7 +1322,6 @@ export default function App() {
           </span>
           <span>
             <strong>Inventory Lens</strong>
-            <small>Public Roblox inventory analyzer</small>
           </span>
         </button>
         <nav className="dashboard-nav" aria-label="Dashboard pages">
@@ -1338,10 +1339,18 @@ export default function App() {
           >Graphic Builder</button>
         </nav>
         <div className="topbar-meta">
-          <span className="privacy-status"><span /> {webDeployment ? "Browser-side analysis" : "Local processing"}</span>
-          <span className="public-access">No login needed</span>
+          <a
+            aria-label="Open Inventory Lens source on GitHub"
+            className="source-link"
+            href={SOURCE_REPOSITORY_URL}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <span>Open sourced</span>
+            <Icon name="external" />
+          </a>
           <button className="about-trigger" onClick={() => setAboutOpen(true)} ref={aboutTriggerRef} type="button">
-            About & privacy
+            About
           </button>
         </div>
       </header>
@@ -1387,9 +1396,6 @@ export default function App() {
                 {scanButtonLabel} <Icon name="arrow" />
               </button>
             </div>
-            <p>
-              Public inventory scans run without a login or API key.
-            </p>
           </form>
         </section>
 
@@ -1397,7 +1403,6 @@ export default function App() {
           <aside className={`category-sidebar${mobileCategoriesOpen ? " mobile-open" : ""}`} aria-label="Inventory category filters">
             <div className="sidebar-heading">
               <div>
-                <span className="section-kicker">Scope</span>
                 <h2>Categories</h2>
               </div>
               <span>{selectedCategories.size} selected</span>
@@ -1419,10 +1424,6 @@ export default function App() {
               <button onClick={() => handlePreset(CATEGORY_PRESETS.noClassicClothing)} type="button">No classic clothing</button>
               <button onClick={() => handlePreset(CATEGORY_PRESETS.clear)} type="button">Clear</button>
             </div>
-            <p className="scan-safety-note">
-              Broad selections run in sequential stages. Completed stages stay saved if Roblox asks the scanner to slow down.
-            </p>
-
             <div className="category-list" id="inventory-category-list">
               {[...categoriesByGroup].map(([group, categories]) => (
                 <CategoryGroup

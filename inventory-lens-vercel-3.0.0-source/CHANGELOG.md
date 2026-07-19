@@ -8,6 +8,15 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.1.0] - 2026-07-19
+
+### Changed
+
+- Simplified the dashboard header, grouped its page navigation, and linked the public GitHub source.
+- Collapsed every category group by default while preserving all selected-category state.
+- Tightened dashboard spacing, typography, colors, and mobile navigation for a quieter inventory-first layout.
+- Removed the browser-processing and login-status copy from the scanner interface.
+
 ## [3.0.2] - 2026-07-19
 
 ### Fixed

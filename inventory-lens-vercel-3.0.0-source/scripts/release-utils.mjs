@@ -24,6 +24,7 @@ const REQUIRED_CONTENT_SCRIPT_MATCHES = Object.freeze([
 ]);
 const ALLOWED_PACKAGED_URL_HOSTS = new Set([
   "catalog.roblox.com",
+  "github.com",
   "inventory.roblox.com",
   "react.dev",
   "roblox.com",

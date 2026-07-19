@@ -622,16 +622,36 @@ describe("dashboard scan orchestration", () => {
 });
 
 describe("dashboard public access guidance", () => {
-  it("states the no-login fact once without an API-key setup flow", () => {
+  it("keeps the simplified header free of connection-status copy", () => {
     const markup = renderToStaticMarkup(<App />);
 
-    expect(markup).toContain("Public inventory scans run without a login or API key.");
-    expect(markup.match(/without a login or API key/g)).toHaveLength(1);
+    expect(markup).not.toContain("Browser-side analysis");
+    expect(markup).not.toContain("Local processing");
+    expect(markup).not.toContain("No login needed");
+    expect(markup).not.toContain("without a login or API key");
     expect(markup).toContain("No inventory loaded");
     expect(markup).not.toContain("Test &amp; save key");
     expect(markup).not.toContain("Forget key");
     expect(markup).not.toContain("Roblox API key");
     expect(markup).not.toContain('type="password"');
+  });
+
+  it("links the Open sourced control to the public repository", () => {
+    const markup = renderToStaticMarkup(<App />);
+
+    expect(markup).toContain("Open sourced");
+    expect(markup).toContain('aria-label="Open Inventory Lens source on GitHub"');
+    expect(markup).toContain('href="https://github.com/ListAI67/InventoryLens"');
+    expect(markup).toContain('target="_blank"');
+    expect(markup).toContain('rel="noopener noreferrer"');
+  });
+
+  it("keeps every category group collapsed initially", () => {
+    const markup = renderToStaticMarkup(<App />);
+    const categoryGroups = markup.match(/<details class="category-group"[^>]*>/g) ?? [];
+
+    expect(categoryGroups.length).toBeGreaterThan(0);
+    expect(categoryGroups.every((tag) => !/\sopen(?:=|\s|>)/.test(tag))).toBe(true);
   });
 
   it("exposes the inventory and Graphic Builder pages without a second extension entry point", () => {

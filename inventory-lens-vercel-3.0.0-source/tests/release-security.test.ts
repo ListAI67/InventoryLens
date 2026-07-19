@@ -72,11 +72,12 @@ describe("release manifest security policy", () => {
 });
 
 describe("packaged URL and tracker policy", () => {
-  it("allows only expected Roblox, Fandom, CDN, dependency-help, and SVG namespace URLs", () => {
+  it("allows only expected Roblox, Fandom, GitHub-source, CDN, dependency-help, and SVG namespace URLs", () => {
     expect(() => validatePackagedText("bundle.js", [
       "https://inventory.roblox.com/v1/test",
       "https://roblox.fandom.com/api.php",
       "https://www.roblox.com/catalog/1",
+      "https://github.com/ListAI67/InventoryLens",
       "https://tr.rbxcdn.com/image.png",
       "https://react.dev/errors/418",
       "http://www.w3.org/2000/svg",
