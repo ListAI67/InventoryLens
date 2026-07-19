@@ -1,0 +1,41 @@
+{
+  "name": "inventory-lens",
+  "description": "Public Roblox inventory analyzer for exact copies, collector context, and local collection graphics.",
+  "license": "MIT",
+  "private": true,
+  "version": "3.0.0",
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "dev:web": "vite --config vite.web.config.ts",
+    "build": "tsc -b && vite build",
+    "build:web": "tsc -b && vite build --config vite.web.config.ts && node scripts/verify-web-build.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "node scripts/source-policy-lint.mjs",
+    "typecheck": "tsc -b --pretty false",
+    "security:check": "node scripts/security-check.mjs",
+    "secrets:check": "node scripts/secret-check.mjs",
+    "verify:web": "pnpm run test && pnpm run lint && pnpm run build:web && pnpm run secrets:check",
+    "release:package": "pnpm run test && pnpm run lint && pnpm run build && pnpm run security:check && pnpm run secrets:check && node scripts/package-release.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.31",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "jsdom": "^27.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.15"
+  }
+}

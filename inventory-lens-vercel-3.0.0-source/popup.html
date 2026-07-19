@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>Inventory Lens</title>
+  </head>
+  <body>
+    <main class="popup-shell">
+      <header>
+        <img alt="" src="/icons/icon-48.png" />
+        <div>
+          <strong>Inventory Lens</strong>
+          <span>Analyze a public Roblox inventory.</span>
+        </div>
+      </header>
+
+      <button id="open-dashboard" type="button">
+        <span>Open Inventory Lens</span>
+        <span aria-hidden="true">→</span>
+      </button>
+      <button id="scan-profile" hidden type="button">Scan current Roblox profile</button>
+      <p class="popup-status" id="popup-status" role="status"></p>
+
+      <footer>
+        <span><i></i> Local processing &bull; No account login</span>
+      </footer>
+    </main>
+    <script type="module" src="/src/popup.ts"></script>
+  </body>
+</html>

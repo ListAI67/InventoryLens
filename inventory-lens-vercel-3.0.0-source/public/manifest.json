@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Inventory Lens",
+  "short_name": "Inventory Lens",
+  "description": "Public Roblox inventory analyzer for exact copies, collector context, and local collection graphics.",
+  "version": "3.0.0",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://users.roblox.com/*",
+    "https://catalog.roblox.com/*",
+    "https://inventory.roblox.com/*",
+    "https://thumbnails.roblox.com/*",
+    "https://roblox.fandom.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Inventory Lens",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.roblox.com/users/*/profile*",
+        "https://roblox.com/users/*/profile*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://rbxcdn.com https://*.rbxcdn.com; connect-src https://users.roblox.com https://catalog.roblox.com https://inventory.roblox.com https://thumbnails.roblox.com https://roblox.fandom.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+  }
+}
