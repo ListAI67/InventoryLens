@@ -1,0 +1,147 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0a0e15;
+  color: #f4f7fb;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 328px;
+  min-height: 214px;
+  margin: 0;
+  background: #0a0e15;
+}
+
+button {
+  font: inherit;
+}
+
+button:focus-visible {
+  outline: 2px solid #76aeff;
+  outline-offset: 3px;
+}
+
+.popup-shell {
+  padding: 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header img {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgb(255 255 255 / 13%);
+  border-radius: 6px;
+}
+
+header div {
+  display: grid;
+  gap: 2px;
+}
+
+header strong {
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+
+header span {
+  color: #8995a8;
+  font-size: 9px;
+}
+
+#open-dashboard,
+#scan-profile {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border: 1px solid #6aa7ff;
+  border-radius: 6px;
+  background: #347fdc;
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+#open-dashboard:hover {
+  background: #438de8;
+}
+
+#scan-profile {
+  min-height: 34px;
+  margin-top: 8px;
+  justify-content: center;
+  border-color: #344159;
+  background: #151c28;
+  color: #c8d2df;
+  font-size: 10px;
+}
+
+#scan-profile:hover {
+  border-color: #4b5b75;
+  background: #1b2534;
+}
+
+#scan-profile[hidden] {
+  display: none;
+}
+
+#open-dashboard:disabled,
+#scan-profile:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.popup-status {
+  min-height: 15px;
+  margin: 7px 2px 0;
+  color: #ff9ca1;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+footer {
+  display: block;
+  align-items: center;
+  margin-top: 7px;
+  padding-top: 10px;
+  border-top: 1px solid #1c2534;
+  color: #748196;
+  font-size: 8px;
+}
+
+footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+footer i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #40d39c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
