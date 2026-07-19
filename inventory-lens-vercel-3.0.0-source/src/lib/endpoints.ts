@@ -1,4 +1,4 @@
-import type { InventoryKind } from "./types";
+import type { InventoryKind } from "./types.js";
 
 export const ENDPOINT_ORIGINS = Object.freeze({
   users: "https://users.roblox.com",

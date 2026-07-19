@@ -1,7 +1,7 @@
 import {
   ENDPOINT_ORIGINS,
   ROBLOX_HTTP_ALLOWED_ORIGINS,
-} from "../src/lib/endpoints";
+} from "../src/lib/endpoints.js";
 
 export const MAX_PROXY_URL_LENGTH = 8_192;
 export const MAX_PROXY_REQUEST_BYTES = 128 * 1_024;

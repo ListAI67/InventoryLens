@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import vercelText from "../vercel.json?raw";
+import tsconfigText from "../tsconfig.json?raw";
 
 interface VercelConfig {
   buildCommand?: string;
@@ -8,6 +9,7 @@ interface VercelConfig {
 }
 
 const config = JSON.parse(vercelText) as VercelConfig;
+const tsconfig = JSON.parse(tsconfigText) as { references?: unknown; include?: string[] };
 
 describe("Vercel deployment configuration", () => {
   it("builds and publishes the dedicated web bundle", () => {
@@ -29,5 +31,10 @@ describe("Vercel deployment configuration", () => {
     for (const rewrite of config.rewrites ?? []) {
       expect(rewrite.destination).not.toMatch(/^https?:\/\//i);
     }
+  });
+
+  it("uses a Vercel-compatible root TypeScript configuration", () => {
+    expect(tsconfig.references).toBeUndefined();
+    expect(tsconfig.include).toEqual(expect.arrayContaining(["api", "server"]));
   });
 });

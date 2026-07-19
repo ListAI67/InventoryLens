@@ -8,6 +8,14 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.0.1] - 2026-07-19
+
+### Fixed
+
+- Fixed the hosted Vercel proxy failing during Function startup before it could contact Roblox.
+- Replaced Vercel-incompatible TypeScript project references with one deployable root configuration.
+- Made server-side ESM imports explicit and used Vercel's documented Web-standard default `fetch` entry point.
+
 ## [3.0.0] - 2026-07-19
 
 ### Added

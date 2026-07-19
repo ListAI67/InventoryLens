@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { handleProxyRequest } from "../api/proxy";
+import proxyFunction, { handleProxyRequest } from "../api/proxy";
 
 const APP_ORIGIN = "https://inventory-lens.example";
 
@@ -20,6 +20,12 @@ function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
 }
 
 describe("Vercel proxy handler", () => {
+  it("exports Vercel's Web-standard default fetch entry point", async () => {
+    const response = await proxyFunction.fetch(new Request(`${APP_ORIGIN}/api/proxy`));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: { code: "invalid_parameter" } });
+  });
+
   it("forwards only the anonymous request header allowlist", async () => {
     const upstream = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
       const headers = new Headers(init?.headers);

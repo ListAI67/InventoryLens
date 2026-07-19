@@ -6,7 +6,7 @@ import {
   sanitizedProxyResponseHeaders,
   validateProxyJsonBody,
   validateProxyTarget,
-} from "../server/proxy-policy";
+} from "../server/proxy-policy.js";
 
 type FetchImplementation = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 const UPSTREAM_TIMEOUT_MS = 25_000;
@@ -140,10 +140,9 @@ export async function handleProxyRequest(
   }
 }
 
-export function GET(request: Request): Promise<Response> {
-  return handleProxyRequest(request);
-}
-
-export function POST(request: Request): Promise<Response> {
-  return handleProxyRequest(request);
-}
+/** Vercel's Web-standard Node.js Function entry point. */
+export default {
+  fetch(request: Request): Promise<Response> {
+    return handleProxyRequest(request);
+  },
+};
