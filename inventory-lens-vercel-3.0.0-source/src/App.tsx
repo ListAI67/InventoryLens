@@ -494,15 +494,18 @@ function CategoryCheckbox({
   category,
   checked,
   count,
+  leadingSpacer = false,
   onChange,
 }: {
   category: CategoryOption;
   checked: boolean;
   count?: number;
+  leadingSpacer?: boolean;
   onChange: (checked: boolean) => void;
 }) {
   return (
     <label className="category-option">
+      {leadingSpacer ? <span aria-hidden="true" className="category-leading-spacer" /> : null}
       <input
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
@@ -511,7 +514,7 @@ function CategoryCheckbox({
       <span className="checkmark" aria-hidden="true">
         <Icon name="check" />
       </span>
-      <span>{category.label}</span>
+      <span className="category-label">{category.label}</span>
       {typeof count === "number" && count > 0 ? (
         <span className="category-count">{formatCount(count)}</span>
       ) : null}
@@ -552,6 +555,7 @@ function CategoryGroup({
           category={{ ...category, label: name }}
           checked={selected.has(category.id)}
           count={itemCounts.get(category.id)}
+          leadingSpacer
           onChange={(checked) => onCategoryChange(category.id, checked)}
         />
       </div>
@@ -574,7 +578,7 @@ function CategoryGroup({
           <span className="checkmark" aria-hidden="true">
             <Icon name="check" />
           </span>
-          <span>{name}</span>
+          <span className="category-label">{name}</span>
         </label>
         <span className="group-total">
           {allChecked ? `${categories.length} types` : `${checkedCount} of ${categories.length}`}

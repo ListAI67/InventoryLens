@@ -634,6 +634,7 @@ select {
 .category-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
   gap: 8px;
   padding: 16px 18px 20px;
 }
@@ -774,10 +775,17 @@ input:focus-visible + .checkmark {
   color: var(--ink);
 }
 
-.category-option > span:nth-last-child(2) {
+.category-label {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.category-leading-spacer {
+  width: 15px;
+  height: 1px;
+  flex: 0 0 15px;
 }
 
 .category-count {

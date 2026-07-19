@@ -8,6 +8,14 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.2.4] - 2026-07-19
+
+### Fixed
+
+- Aligned every top-level inventory category name to one consistent column, including rows without an expandable submenu.
+- Prevented expanded category cards from vertically stretching neighboring closed cards.
+- Applied label truncation consistently whether or not an inventory count is present.
+
 ## [3.2.3] - 2026-07-19
 
 ### Added

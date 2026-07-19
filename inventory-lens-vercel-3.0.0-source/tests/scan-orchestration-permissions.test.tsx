@@ -114,6 +114,22 @@ describe("dashboard optional-stage permission handling", () => {
     container.remove();
   });
 
+  it("keeps single and expandable category labels on the same leading grid", () => {
+    act(() => buttonWithText(container, "Edit scope").click());
+    const dialog = container.querySelector('[role="dialog"]');
+    if (!(dialog instanceof HTMLElement)) throw new Error("Category dialog did not open.");
+
+    const singleCategory = [...dialog.querySelectorAll("label.category-option")]
+      .find((candidate) => candidate.textContent?.trim() === "Hair");
+    const expandableCategory = [...dialog.querySelectorAll("details.category-group")]
+      .find((candidate) => candidate.querySelector("summary")?.textContent?.includes("Accessories"));
+
+    expect(singleCategory?.querySelector(".category-leading-spacer")).not.toBeNull();
+    expect(singleCategory?.querySelector(".category-label")?.textContent).toBe("Hair");
+    expect(expandableCategory?.querySelector("summary .summary-chevron")).not.toBeNull();
+    expect(expandableCategory?.querySelector("summary .category-label")?.textContent).toBe("Accessories");
+  });
+
   it("continues when the first selected optional stage is denied", async () => {
     scannerMocks.scanInventory.mockImplementation(async ({ categoryIds }) => {
       if (categoryIds.includes("bundles")) {

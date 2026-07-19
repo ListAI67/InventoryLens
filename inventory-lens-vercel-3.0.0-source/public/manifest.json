@@ -3,7 +3,7 @@
   "name": "Inventory Lens",
   "short_name": "Inventory Lens",
   "description": "Public Roblox inventory analyzer for exact copies, collector context, and local collection graphics.",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "permissions": [
     "storage",
     "activeTab"
