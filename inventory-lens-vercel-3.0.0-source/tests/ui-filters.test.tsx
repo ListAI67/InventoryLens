@@ -601,13 +601,13 @@ describe("dashboard scan orchestration", () => {
     expect(message).not.toBe("This inventory is private.");
   });
 
-  it("explains a viewable inventory's permission denial without calling it private", () => {
+  it("explains a generic permission denial without claiming visibility or calling it private", () => {
     const message = errorMessage(
       new ScanError("permissionDenied", "Roblox denied this request.", 403),
     );
 
-    expect(message).toContain("inventory is viewable");
-    expect(message).toContain("withheld protected item types");
+    expect(message).toContain("denied an anonymous public inventory request");
+    expect(message).not.toContain("inventory is viewable");
     expect(message.toLocaleLowerCase()).not.toContain("inventory is private");
   });
 

@@ -470,7 +470,7 @@ export function errorMessage(error: unknown) {
       case "privateInventory":
         return "Roblox reports that this player's inventory is private, so it cannot be scanned publicly.";
       case "permissionDenied":
-        return "Roblox confirmed the inventory is viewable but withheld protected item types for this player. Public results remain available when possible.";
+        return "Roblox denied an anonymous public inventory request. Any categories Roblox did return remain available; private or protected data cannot be bypassed.";
       case "notFound":
         return "No Roblox player matched that username, user ID, or profile URL.";
       case "rateLimited":
@@ -1099,6 +1099,8 @@ export default function App() {
       let completedRecords = isIncremental ? ownedCopies : 0;
       let successfulStages = 0;
       let skippedStages = 0;
+      let scannedCategoryCount = 0;
+      let deniedCategoryCount = 0;
       let activeSegment: ScanSegment | null = null;
       let completedCategories = new Set(
         isIncremental ? scannedCategories : [],
@@ -1166,9 +1168,8 @@ export default function App() {
           } catch (error) {
             if (
               error instanceof ScanError &&
-              (error.code === "privateInventory" || error.code === "permissionDenied") &&
-              segment.optional &&
-              (successfulStages > 0 || isIncremental)
+              error.code === "permissionDenied" &&
+              segment.optional
             ) {
               skippedStages += 1;
               const warning = `${segment.label} was not loaded because Roblox denied access. Other successful categories remain available.`;
@@ -1185,7 +1186,7 @@ export default function App() {
           resolvedUserForRun = result.user;
           visibilityCheckedForRun = true;
 
-          const shouldMerge = isIncremental || successfulStages > 0;
+          const shouldMerge = isIncremental || successfulStages > 0 || skippedStages > 0;
           if (graphicOwnerIdRef.current !== result.user.id) {
             graphicOwnerIdRef.current = result.user.id;
             setGraphicDraft(createGraphicDraft());
@@ -1209,27 +1210,40 @@ export default function App() {
             true,
           );
           setScannedCategories(completedCategories);
+          scannedCategoryCount += result.coverage.scannedCategoryIds.length;
+          deniedCategoryCount += result.coverage.deniedCategoryIds.length;
           lastScanInput.current = normalizedInput;
           completedPages += segmentPages;
           completedRecords += result.records.length;
           successfulStages += 1;
         }
 
-        setScanState("done");
+        const everyPublicCategoryDenied =
+          (deniedCategoryCount > 0 && scannedCategoryCount === 0) ||
+          (successfulStages === 0 && skippedStages > 0);
+        setScanState(successfulStages > 0 ? "done" : "idle");
         setScanStage({
           current: segments.length,
           total: segments.length,
           label: "Complete",
         });
+        if (everyPublicCategoryDenied) {
+          setScanErrorCode("permissionDenied");
+          setScanError(
+            "Roblox denied anonymous access to every selected public category. Try another category or player; private data cannot be bypassed.",
+          );
+        }
         setProgress({
           phase: "done",
           pages: completedPages,
           records: completedRecords,
-          message: skippedStages
-            ? "Scan complete with optional categories unavailable"
-            : isIncremental
-              ? "New categories merged into this inventory"
-              : "Inventory scan complete",
+          message: everyPublicCategoryDenied
+            ? "No selected public categories were available"
+            : skippedStages || deniedCategoryCount > 0
+              ? "Scan complete with some categories unavailable"
+              : isIncremental
+                ? "New categories merged into this inventory"
+                : "Inventory scan complete",
         });
       } catch (error) {
         const code = error instanceof ScanError ? error.code : null;

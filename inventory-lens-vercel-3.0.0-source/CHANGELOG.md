@@ -8,6 +8,16 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.0.2] - 2026-07-19
+
+### Fixed
+
+- Made Roblox's legacy inventory-visibility request advisory unless Roblox explicitly reports a private inventory.
+- Continued scanning later public asset types when Roblox denies one anonymous category.
+- Kept denied categories retryable and distinguished them from successfully scanned or unsupported categories.
+- Stopped suppressing a confirmed private-inventory response from a later scan stage.
+- Reworded generic permission failures so the dashboard no longer claims Roblox confirmed an inventory was viewable.
+
 ## [3.0.1] - 2026-07-19
 
 ### Fixed

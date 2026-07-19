@@ -108,6 +108,7 @@ export async function scanInventory(options: ScanOptions): Promise<ScanResult> {
   const warnings: string[] = [];
   const scannedCategoryIds: string[] = [];
   const partialCategoryIds: string[] = [];
+  const deniedCategoryIds: string[] = [];
   const unsupportedCategoryIds = selectedUnsupportedPublicCategoryIds(options.categoryIds);
   let pages = 0;
   let latestPhase: ScanProgress["phase"] = "idle";
@@ -149,16 +150,29 @@ export async function scanInventory(options: ScanOptions): Promise<ScanResult> {
   throwIfAborted(options.signal);
   if (!options.skipVisibilityCheck) {
     progress({ phase: "inventory", records: 0, message: "Checking public inventory visibility..." });
-    const visibility = await canViewInventory({ userId: user.id, client, signal: options.signal });
-    if (visibility === false) {
-      throw new ScanError(
-        "privateInventory",
-        "Roblox reports that this player's inventory is private.",
-        403,
+    try {
+      const visibility = await canViewInventory({ userId: user.id, client, signal: options.signal });
+      if (visibility === false) {
+        throw new ScanError(
+          "privateInventory",
+          "Roblox reports that this player's inventory is private.",
+          403,
+        );
+      }
+      if (visibility === undefined) {
+        warnings.push("Roblox did not return a clear inventory-visibility value; public categories were tried directly.");
+      }
+    } catch (error) {
+      if (
+        !(error instanceof ScanError) ||
+        error.code === "cancelled" ||
+        error.code === "privateInventory"
+      ) {
+        throw error;
+      }
+      warnings.push(
+        "Roblox's inventory-visibility check was unavailable; public categories were tried directly.",
       );
-    }
-    if (visibility === undefined) {
-      warnings.push("Roblox did not return a clear inventory-visibility value; the public adapters were tried normally.");
     }
   }
 
@@ -201,12 +215,19 @@ export async function scanInventory(options: ScanOptions): Promise<ScanResult> {
 
     const unfinishedTypes = new Set([
       ...publicAssets.partialAssetTypeIds,
+      ...publicAssets.failedAssetTypeIds,
       ...publicAssets.unscannedAssetTypeIds,
     ]);
+    const deniedTypes = new Set(publicAssets.deniedAssetTypeIds);
     for (const category of assetCategories) {
       const ids = legacyAssetTypeIdsForCategoryId(category.id);
-      if (ids.some((id) => unfinishedTypes.has(id))) partialCategoryIds.push(category.id);
-      else scannedCategoryIds.push(category.id);
+      if (ids.length > 0 && ids.every((id) => deniedTypes.has(id))) {
+        deniedCategoryIds.push(category.id);
+      } else if (ids.some((id) => unfinishedTypes.has(id) || deniedTypes.has(id))) {
+        partialCategoryIds.push(category.id);
+      } else {
+        scannedCategoryIds.push(category.id);
+      }
     }
   }
 
@@ -237,8 +258,13 @@ export async function scanInventory(options: ScanOptions): Promise<ScanResult> {
       }
     } catch (error) {
       if (error instanceof ScanError && (error.code === "cancelled" || error.code === "privateInventory")) throw error;
-      partialCategoryIds.push("places.created");
-      warnings.push("Created places were unavailable; other public inventory results were kept.");
+      if (error instanceof ScanError && error.code === "permissionDenied") {
+        deniedCategoryIds.push("places.created");
+        warnings.push("Roblox denied anonymous access to created places; other public inventory results were kept.");
+      } else {
+        partialCategoryIds.push("places.created");
+        warnings.push("Created places were unavailable; other public inventory results were kept.");
+      }
     }
   }
 
@@ -269,8 +295,13 @@ export async function scanInventory(options: ScanOptions): Promise<ScanResult> {
       }
     } catch (error) {
       if (error instanceof ScanError && (error.code === "cancelled" || error.code === "privateInventory")) throw error;
-      partialCategoryIds.push("bundles");
-      warnings.push("Bundles were unavailable; other public inventory results were kept.");
+      if (error instanceof ScanError && error.code === "permissionDenied") {
+        deniedCategoryIds.push("bundles");
+        warnings.push("Roblox denied anonymous access to bundles; other public inventory results were kept.");
+      } else {
+        partialCategoryIds.push("bundles");
+        warnings.push("Bundles were unavailable; other public inventory results were kept.");
+      }
     }
   }
 
@@ -342,6 +373,7 @@ export async function scanInventory(options: ScanOptions): Promise<ScanResult> {
   const coverage: ScanCoverage = {
     scannedCategoryIds: unique(scannedCategoryIds),
     partialCategoryIds: unique(partialCategoryIds),
+    deniedCategoryIds: unique(deniedCategoryIds),
     unsupportedCategoryIds: unique(unsupportedCategoryIds),
   };
   const items = groupInventoryRecords(records, { catalog, fandomItems, thumbnails });

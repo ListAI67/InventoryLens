@@ -63,6 +63,7 @@ export interface PublicAssetInventoryResult extends PaginatedInventoryResult<Leg
   completedAssetTypeIds: number[];
   partialAssetTypeIds: number[];
   failedAssetTypeIds: number[];
+  deniedAssetTypeIds: number[];
   unscannedAssetTypeIds: number[];
 }
 
@@ -145,6 +146,7 @@ export async function listPublicAssets(
   const completedAssetTypeIds: number[] = [];
   const partialAssetTypeIds: number[] = [];
   const failedAssetTypeIds: number[] = [];
+  const deniedAssetTypeIds: number[] = [];
   let unscannedAssetTypeIds: number[] = [];
   let pages = 0;
   let stoppedBecause: PublicAssetInventoryResult["stoppedBecause"];
@@ -184,6 +186,14 @@ export async function listPublicAssets(
       );
     } catch (error) {
       if (error instanceof ScanError && (error.code === "cancelled" || error.code === "privateInventory")) throw error;
+      if (error instanceof ScanError && error.code === "permissionDenied") {
+        failedAssetTypeIds.push(assetTypeId);
+        deniedAssetTypeIds.push(assetTypeId);
+        options.onWarning?.(
+          `Roblox denied anonymous access to inventory asset type ${assetTypeId}; the scan continued with later types.`,
+        );
+        continue;
+      }
       if (error instanceof ScanError && (error.status === 400 || error.status === 404)) {
         failedAssetTypeIds.push(assetTypeId);
         options.onWarning?.(`Roblox did not support public inventory asset type ${assetTypeId}; the scan continued.`);
@@ -231,6 +241,7 @@ export async function listPublicAssets(
     completedAssetTypeIds,
     partialAssetTypeIds,
     failedAssetTypeIds,
+    deniedAssetTypeIds,
     unscannedAssetTypeIds: [...new Set(unscannedAssetTypeIds)],
   };
 }

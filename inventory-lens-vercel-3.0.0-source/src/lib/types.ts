@@ -228,6 +228,8 @@ export interface ScanCoverage {
   scannedCategoryIds: string[];
   /** Publicly supported categories that returned only partial coverage. */
   partialCategoryIds: string[];
+  /** Public categories Roblox explicitly refused to expose anonymously. */
+  deniedCategoryIds: string[];
   /** Categories that cannot be enumerated by Roblox without authentication. */
   unsupportedCategoryIds: string[];
 }

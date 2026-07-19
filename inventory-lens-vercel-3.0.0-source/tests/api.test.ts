@@ -293,6 +293,31 @@ describe("public asset inventory pagination", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("skips one anonymously denied asset type and continues with later types", async () => {
+    const visitedTypes: string[] = [];
+    const warnings: string[] = [];
+    const fetch = fetchMock((url) => {
+      const assetType = url.pathname.split("/").at(-1)!;
+      visitedTypes.push(assetType);
+      if (assetType === "8") {
+        return jsonResponse({ message: "The request does not have sufficient permissions." }, { status: 403 });
+      }
+      return jsonResponse({ data: [{ userAssetId: 2, assetId: 41, assetName: "Hair" }] });
+    });
+
+    const result = await listPublicAssets([8, 41], {
+      userId: "1",
+      client: new RobloxHttpClient({ fetch }),
+      onWarning: (warning) => warnings.push(warning),
+    });
+
+    expect(visitedTypes).toEqual(["8", "41"]);
+    expect(result.deniedAssetTypeIds).toEqual([8]);
+    expect(result.completedAssetTypeIds).toEqual([41]);
+    expect(result.items).toEqual([expect.objectContaining({ assetTypeId: 41, assetId: 41 })]);
+    expect(warnings.join(" ")).toContain("scan continued with later types");
+  });
+
   it("uses Roblox's public visibility signal", async () => {
     for (const value of [true, false]) {
       const fetch = fetchMock((url, init) => {
@@ -723,6 +748,85 @@ describe("scan orchestration", () => {
     expect(visited.some((url) => url.startsWith("catalog.roblox.com"))).toBe(false);
   });
 
+  it("treats a generic visibility denial as advisory and still loads public assets", async () => {
+    const fetch = fetchMock((url, init) => {
+      if (url.hostname === "users.roblox.com") {
+        return jsonResponse({ id: 1, name: "Player", displayName: "Player" });
+      }
+      if (url.pathname.includes("avatar-headshot")) return jsonResponse({ data: [] });
+      if (url.pathname === "/v1/users/1/can-view-inventory") {
+        return jsonResponse({ message: "The request does not have sufficient permissions." }, { status: 403 });
+      }
+      if (url.pathname === "/v2/users/1/inventory/8") {
+        return jsonResponse({ data: [{ userAssetId: "copy", assetId: "5", assetName: "Public Hat" }] });
+      }
+      if (url.hostname === "catalog.roblox.com") {
+        expect(init.method).toBe("POST");
+        return jsonResponse({ data: [{
+          id: 5,
+          itemType: "Asset",
+          name: "Public Hat",
+          assetType: 8,
+          itemRestrictions: [],
+        }] });
+      }
+      if (url.hostname === "roblox.fandom.com") return jsonResponse({ query: { pages: [] } });
+      if (url.pathname === "/v1/assets") return jsonResponse({ data: [] });
+      throw new Error(`Unexpected request ${url}`);
+    });
+
+    const result = await scanInventory({ input: "1", categoryIds: ["accessories.head"], fetch });
+
+    expect(result.items).toEqual([expect.objectContaining({ id: "5", name: "Public Hat" })]);
+    expect(result.coverage).toMatchObject({
+      scannedCategoryIds: ["accessories.head"],
+      deniedCategoryIds: [],
+    });
+    expect(result.warnings.join(" ")).toContain("visibility check was unavailable");
+  });
+
+  it("reports a fully denied public category without marking it scanned", async () => {
+    const fetch = fetchMock((url) => {
+      if (url.hostname === "users.roblox.com") {
+        return jsonResponse({ id: 1, name: "Player", displayName: "Player" });
+      }
+      if (url.pathname.includes("avatar-headshot")) return jsonResponse({ data: [] });
+      if (url.pathname === "/v1/users/1/can-view-inventory") return jsonResponse({ canView: true });
+      if (url.pathname === "/v2/users/1/inventory/8") {
+        return jsonResponse({ message: "The request does not have sufficient permissions." }, { status: 403 });
+      }
+      throw new Error(`Unexpected request ${url}`);
+    });
+
+    const result = await scanInventory({ input: "1", categoryIds: ["accessories.head"], fetch });
+
+    expect(result.items).toEqual([]);
+    expect(result.coverage).toEqual({
+      scannedCategoryIds: [],
+      partialCategoryIds: [],
+      deniedCategoryIds: ["accessories.head"],
+      unsupportedCategoryIds: [],
+    });
+    expect(result.warnings.join(" ")).toContain("denied anonymous access");
+  });
+
+  it("still stops when an asset endpoint explicitly reports a private inventory", async () => {
+    const fetch = fetchMock((url) => {
+      if (url.hostname === "users.roblox.com") {
+        return jsonResponse({ id: 1, name: "Player", displayName: "Player" });
+      }
+      if (url.pathname.includes("avatar-headshot")) return jsonResponse({ data: [] });
+      if (url.pathname === "/v1/users/1/can-view-inventory") return jsonResponse({ canView: true });
+      if (url.pathname === "/v2/users/1/inventory/8") {
+        return jsonResponse({ message: "Inventory is private" }, { status: 403 });
+      }
+      throw new Error(`Unexpected request ${url}`);
+    });
+
+    await expect(scanInventory({ input: "1", categoryIds: ["accessories.head"], fetch }))
+      .rejects.toMatchObject({ code: "privateInventory" });
+  });
+
   it("counts Sinister² copies and keeps 8,857 wiki purchases distinct from owners", async () => {
     const fetch = fetchMock((url, init) => {
       if (url.hostname === "users.roblox.com") {
@@ -900,6 +1004,7 @@ As of October 28, 2019, it has been purchased 9,534 times.` } } }],
     expect(result.coverage).toEqual({
       scannedCategoryIds: ["accessories.head"],
       partialCategoryIds: [],
+      deniedCategoryIds: [],
       unsupportedCategoryIds: ["places.purchased", "privateServers"],
     });
     expect(result.warnings.join(" ")).toContain("unavailable through Roblox's public no-login inventory APIs");
