@@ -8,6 +8,14 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.2.1] - 2026-07-19
+
+### Changed
+
+- Converted the dashboard, category scope, item results, dialogs, Graphic Builder, and extension popup to a cohesive dark violet theme.
+- Added accessible amethyst controls, orchid collector accents, and separate red off-sale/error states.
+- Updated browser theme metadata and the Roblox profile-page scan button to match the dark violet interface.
+
 ## [3.2.0] - 2026-07-19
 
 ### Changed

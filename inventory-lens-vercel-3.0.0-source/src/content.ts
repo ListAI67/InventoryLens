@@ -66,10 +66,10 @@ function findProfileButtonContainer(doc: Document): HTMLElement | null {
 function styleButton(button: HTMLButtonElement, fixed: boolean): void {
   button.style.cssText = [
     "align-items:center",
-    "background:#335fff",
-    "border:1px solid rgba(255,255,255,.16)",
+    "background:#744ee8",
+    "border:1px solid rgba(189,168,255,.34)",
     "border-radius:8px",
-    "box-shadow:0 4px 14px rgba(0,0,0,.24)",
+    "box-shadow:0 6px 18px rgba(44,24,86,.38)",
     "color:#fff",
     "cursor:pointer",
     "display:inline-flex",

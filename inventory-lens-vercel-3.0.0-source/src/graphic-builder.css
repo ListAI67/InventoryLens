@@ -43,7 +43,7 @@
 
 .graphic-heading-actions > span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -85,7 +85,7 @@
 
 .graphic-control-heading > span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .graphic-control-section > label,
@@ -98,7 +98,7 @@
 .graphic-selected-row label > span {
   overflow: hidden;
   color: var(--muted-bright);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -115,7 +115,7 @@
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: #0b1018;
+  background: var(--paper);
   color: var(--text);
   font-size: 11px;
 }
@@ -150,7 +150,7 @@
   padding: 9px 10px;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
-  background: #0b1018;
+  background: var(--mineral-soft);
 }
 
 .graphic-footer-block > .graphic-check-row {
@@ -170,12 +170,12 @@
 
 .graphic-helper-note {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
 .graphic-helper-note.warning {
-  color: #f4c873;
+  color: var(--amber);
 }
 
 .graphic-footer-optional {
@@ -192,7 +192,7 @@
 .graphic-quick-actions .button {
   min-height: 32px;
   padding-inline: 9px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .graphic-picker {
@@ -200,7 +200,7 @@
   overflow: auto;
   border: 1px solid var(--line-soft);
   border-radius: 7px;
-  background: #090d14;
+  background: var(--mineral-soft);
 }
 
 .graphic-picker-row {
@@ -256,21 +256,21 @@
 
 .graphic-picker-row strong {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .graphic-picker-row small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .graphic-picker-note,
 .graphic-picker-empty {
   margin: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -297,7 +297,7 @@
   height: 38px;
   place-items: center;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -307,7 +307,7 @@
 
 .graphic-selected-row input {
   height: 34px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .graphic-order-buttons {
@@ -322,14 +322,14 @@
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: #131a25;
+  background: var(--paper);
   color: var(--muted-bright);
   font-size: 11px;
 }
 
 .graphic-order-buttons button:hover:not(:disabled) {
-  border-color: #465672;
-  color: #fff;
+  border-color: var(--cobalt);
+  color: var(--ink);
 }
 
 .graphic-preview-panel {
@@ -365,11 +365,11 @@
 .graphic-preview-toolbar span,
 .graphic-preview-footer {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .graphic-render-status.ready {
-  color: #8bd9b9;
+  color: var(--mint);
 }
 
 .graphic-render-status.error {
@@ -381,14 +381,14 @@
   width: 100%;
   place-items: center;
   overflow: hidden;
-  border: 1px solid #313c50;
+  border: 1px solid var(--rule-strong);
   border-radius: 8px;
   background:
-    linear-gradient(45deg, #111722 25%, transparent 25%),
-    linear-gradient(-45deg, #111722 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #111722 75%),
-    linear-gradient(-45deg, transparent 75%, #111722 75%),
-    #0b0f16;
+    linear-gradient(45deg, #201b2b 25%, transparent 25%),
+    linear-gradient(-45deg, #201b2b 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #201b2b 75%),
+    linear-gradient(-45deg, transparent 75%, #201b2b 75%),
+    #0b0a10;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
   background-size: 16px 16px;
 }
@@ -435,7 +435,7 @@
 .graphic-preview-footer .button {
   min-height: 34px;
   padding-inline: 12px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .graphic-empty {

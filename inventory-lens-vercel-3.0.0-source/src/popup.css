@@ -1,8 +1,8 @@
 :root {
   color-scheme: dark;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #0a0e15;
-  color: #f4f7fb;
+  background: #0b0a10;
+  color: #f6f2fb;
   font-synthesis: none;
 }
 
@@ -14,7 +14,7 @@ body {
   width: 328px;
   min-height: 214px;
   margin: 0;
-  background: #0a0e15;
+  background: #0b0a10;
 }
 
 button {
@@ -22,7 +22,7 @@ button {
 }
 
 button:focus-visible {
-  outline: 2px solid #76aeff;
+  outline: 2px solid #bda8ff;
   outline-offset: 3px;
 }
 
@@ -39,7 +39,7 @@ header {
 header img {
   width: 38px;
   height: 38px;
-  border: 1px solid rgb(255 255 255 / 13%);
+  border: 1px solid rgb(189 168 255 / 24%);
   border-radius: 6px;
 }
 
@@ -54,8 +54,8 @@ header strong {
 }
 
 header span {
-  color: #8995a8;
-  font-size: 9px;
+  color: #958ca5;
+  font-size: 11px;
 }
 
 #open-dashboard,
@@ -66,9 +66,9 @@ header span {
   align-items: center;
   justify-content: space-between;
   padding: 0 14px;
-  border: 1px solid #6aa7ff;
+  border: 1px solid #8f72ef;
   border-radius: 6px;
-  background: #347fdc;
+  background: #744ee8;
   color: #fff;
   cursor: pointer;
   font-size: 11px;
@@ -76,22 +76,22 @@ header span {
 }
 
 #open-dashboard:hover {
-  background: #438de8;
+  background: #8058f2;
 }
 
 #scan-profile {
   min-height: 34px;
   margin-top: 8px;
   justify-content: center;
-  border-color: #344159;
-  background: #151c28;
-  color: #c8d2df;
-  font-size: 10px;
+  border-color: #4f3c69;
+  background: #181520;
+  color: #c3bbcf;
+  font-size: 11px;
 }
 
 #scan-profile:hover {
-  border-color: #4b5b75;
-  background: #1b2534;
+  border-color: #6a5d82;
+  background: #241c3a;
 }
 
 #scan-profile[hidden] {
@@ -107,8 +107,8 @@ header span {
 .popup-status {
   min-height: 15px;
   margin: 7px 2px 0;
-  color: #ff9ca1;
-  font-size: 9px;
+  color: #ff8a95;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -117,9 +117,9 @@ footer {
   align-items: center;
   margin-top: 7px;
   padding-top: 10px;
-  border-top: 1px solid #1c2534;
-  color: #748196;
-  font-size: 8px;
+  border-top: 1px solid #302a3d;
+  color: #958ca5;
+  font-size: 11px;
 }
 
 footer span {
@@ -132,7 +132,7 @@ footer i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #40d39c;
+  background: #59d8b0;
 }
 
 @media (prefers-reduced-motion: reduce) {
