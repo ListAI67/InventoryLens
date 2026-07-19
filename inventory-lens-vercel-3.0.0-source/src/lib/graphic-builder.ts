@@ -2,6 +2,7 @@ export const GRAPHIC_DRAFT_VERSION = 1 as const;
 export const MAX_GRAPHIC_ITEMS = 18;
 
 export type GraphicExportPreset = "landscape" | "square" | "portrait";
+export type GraphicDesignPreset = "showcase" | "collectorWall" | "profileHero" | "rareSpotlight";
 export type GraphicBackgroundPreset =
   | "midnight"
   | "neonGrid"
@@ -24,6 +25,17 @@ export const GRAPHIC_BACKGROUND_OPTIONS: readonly Readonly<{
   Object.freeze({ id: "arctic", label: "Arctic Blue" }),
   Object.freeze({ id: "emerald", label: "Emerald Matrix" }),
   Object.freeze({ id: "cleanBlack", label: "Clean Black" }),
+]);
+
+export const GRAPHIC_DESIGN_OPTIONS: readonly Readonly<{
+  id: GraphicDesignPreset;
+  label: string;
+  description: string;
+}>[] = Object.freeze([
+  Object.freeze({ id: "showcase", label: "Showcase", description: "Avatar beside a balanced item wall." }),
+  Object.freeze({ id: "collectorWall", label: "Collector Wall", description: "Items take over the canvas with a compact owner tag." }),
+  Object.freeze({ id: "profileHero", label: "Profile Hero", description: "A larger avatar leads the collection." }),
+  Object.freeze({ id: "rareSpotlight", label: "Rare Spotlight", description: "Feature the first selected item, then stack the rest." }),
 ]);
 
 export interface GraphicExportDimensions {
@@ -78,6 +90,7 @@ export interface GraphicBuilderDraft {
   showFooterSelectedItems: boolean;
   showFooterOwnedCopies: boolean;
   exportPreset: GraphicExportPreset;
+  designPreset: GraphicDesignPreset;
   backgroundPreset: GraphicBackgroundPreset;
   showPlayerIdentity: boolean;
   showItemNames: boolean;
@@ -103,6 +116,7 @@ const MAX_TEXT_LENGTH: Readonly<Record<GraphicTextField, number>> = Object.freez
 });
 
 const EXPORT_PRESETS = new Set<GraphicExportPreset>(["landscape", "square", "portrait"]);
+const DESIGN_PRESETS = new Set<GraphicDesignPreset>(GRAPHIC_DESIGN_OPTIONS.map(({ id }) => id));
 const BACKGROUND_PRESETS = new Set<GraphicBackgroundPreset>(GRAPHIC_BACKGROUND_OPTIONS.map(({ id }) => id));
 const OFF_SALE_METRICS = new Set<GraphicOffSaleMetric>(["selectedCategoryItems", "selectedCategoryCopies", "graphicItems", "manual"]);
 const CURRENCY_KINDS = new Set<GraphicCurrencyKind>(["usd", "crypto", "custom"]);
@@ -125,6 +139,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isExportPreset(value: unknown): value is GraphicExportPreset {
   return typeof value === "string" && EXPORT_PRESETS.has(value as GraphicExportPreset);
+}
+
+function isDesignPreset(value: unknown): value is GraphicDesignPreset {
+  return typeof value === "string" && DESIGN_PRESETS.has(value as GraphicDesignPreset);
 }
 
 function isBackgroundPreset(value: unknown): value is GraphicBackgroundPreset {
@@ -164,6 +182,7 @@ export function createGraphicDraft(
     showFooterSelectedItems: typeof values.showFooterSelectedItems === "boolean" ? values.showFooterSelectedItems : false,
     showFooterOwnedCopies: typeof values.showFooterOwnedCopies === "boolean" ? values.showFooterOwnedCopies : false,
     exportPreset: isExportPreset(values.exportPreset) ? values.exportPreset : "landscape",
+    designPreset: isDesignPreset(values.designPreset) ? values.designPreset : "showcase",
     backgroundPreset: isBackgroundPreset(values.backgroundPreset) ? values.backgroundPreset : "midnight",
     showPlayerIdentity: typeof values.showPlayerIdentity === "boolean" ? values.showPlayerIdentity : true,
     showItemNames: typeof values.showItemNames === "boolean" ? values.showItemNames : false,
@@ -255,6 +274,13 @@ export function setGraphicExportPreset(
   exportPreset: GraphicExportPreset,
 ): GraphicBuilderDraft {
   return draft.exportPreset === exportPreset ? draft : { ...draft, exportPreset };
+}
+
+export function setGraphicDesignPreset(
+  draft: GraphicBuilderDraft,
+  designPreset: GraphicDesignPreset,
+): GraphicBuilderDraft {
+  return draft.designPreset === designPreset ? draft : { ...draft, designPreset };
 }
 
 export function setGraphicBackgroundPreset(
@@ -379,6 +405,7 @@ function sanitizeDraft(value: unknown): GraphicBuilderDraft | undefined {
     showFooterSelectedItems: typeof value.showFooterSelectedItems === "boolean" ? value.showFooterSelectedItems : false,
     showFooterOwnedCopies: typeof value.showFooterOwnedCopies === "boolean" ? value.showFooterOwnedCopies : false,
     exportPreset: isExportPreset(value.exportPreset) ? value.exportPreset : "landscape",
+    designPreset: isDesignPreset(value.designPreset) ? value.designPreset : "showcase",
     backgroundPreset: isBackgroundPreset(value.backgroundPreset) ? value.backgroundPreset : "midnight",
     showPlayerIdentity: typeof value.showPlayerIdentity === "boolean" ? value.showPlayerIdentity : true,
     showItemNames: typeof value.showItemNames === "boolean" ? value.showItemNames : false,

@@ -12,7 +12,7 @@ import App, {
   type SortMode,
 } from "../src/App";
 import GraphicBuilder from "../src/GraphicBuilder";
-import { createGraphicDraft, GRAPHIC_BACKGROUND_OPTIONS } from "../src/lib/graphic-builder";
+import { createGraphicDraft, GRAPHIC_BACKGROUND_OPTIONS, GRAPHIC_DESIGN_OPTIONS } from "../src/lib/graphic-builder";
 import { ScanError, type GroupedInventoryItem } from "../src/lib/types";
 
 function makeItem(
@@ -646,21 +646,21 @@ describe("dashboard public access guidance", () => {
     expect(markup).toContain('rel="noopener noreferrer"');
   });
 
-  it("keeps every category group collapsed initially", () => {
+  it("keeps category groups out of the page until the scan dialog opens", () => {
     const markup = renderToStaticMarkup(<App />);
     const categoryGroups = markup.match(/<details class="category-group"[^>]*>/g) ?? [];
 
-    expect(categoryGroups.length).toBeGreaterThan(0);
-    expect(categoryGroups.every((tag) => !/\sopen(?:=|\s|>)/.test(tag))).toBe(true);
+    expect(categoryGroups).toHaveLength(0);
+    expect(markup).not.toContain('role="dialog"');
   });
 
-  it("keeps the full scan-scope editor closed initially", () => {
+  it("exposes focused scan-scope dialog triggers while keeping the editor closed initially", () => {
     const markup = renderToStaticMarkup(<App />);
 
-    expect(markup).toContain('aria-controls="inventory-category-list"');
-    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain('aria-controls="inventory-category-dialog"');
+    expect(markup).toContain('aria-haspopup="dialog"');
     expect(markup).toContain("Edit scope");
-    expect(markup).not.toContain("mobile-open");
+    expect(markup).not.toContain("Choose inventory categories");
   });
 
   it("exposes the inventory and Graphic Builder pages without a second extension entry point", () => {
@@ -727,6 +727,32 @@ describe("Graphic Builder background controls", () => {
   });
 });
 
+describe("Graphic Builder design controls", () => {
+  const user = { id: "1", name: "SamplePlayer", displayName: "Sample Player", hasVerifiedBadge: false };
+  const setDraft = () => undefined;
+
+  it("offers visual radio cards for every composition and reflects the saved design", () => {
+    const markup = renderToStaticMarkup(
+      <GraphicBuilder
+        draft={createGraphicDraft({ designPreset: "rareSpotlight" })}
+        items={[]}
+        onBack={() => undefined}
+        setDraft={setDraft}
+        user={user}
+      />,
+    );
+
+    expect(markup).toContain("<legend>Graphic design</legend>");
+    for (const { id, label, description } of GRAPHIC_DESIGN_OPTIONS) {
+      expect(markup).toContain(`value="${id}"`);
+      expect(markup).toContain(`<strong>${label}</strong>`);
+      expect(markup).toContain(`<small>${description}</small>`);
+    }
+    expect(markup).toContain('type="radio" name="graphic-design" checked="" value="rareSpotlight"');
+    expect(markup).toContain('aria-label="Graphic background"');
+  });
+});
+
 describe("Graphic Builder bottom-bar controls", () => {
   const user = { id: "1", name: "SamplePlayer", displayName: "Sample Player", hasVerifiedBadge: false };
   const setDraft = () => undefined;
@@ -742,7 +768,7 @@ describe("Graphic Builder bottom-bar controls", () => {
       />,
     );
 
-    expect(markup).toContain("Bottom bar");
+    expect(markup).toContain("Stats &amp; footer");
     expect(markup).toContain("Choose what appears");
     expect(markup).toContain("Custom text");
     expect(markup).toContain('aria-label="Custom text value"');

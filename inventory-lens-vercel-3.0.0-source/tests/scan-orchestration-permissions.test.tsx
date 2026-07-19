@@ -71,11 +71,30 @@ async function startSelectedScan(container: HTMLElement): Promise<void> {
     throw new Error("Scanner controls were not rendered.");
   }
   const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-  valueSetter?.call(input, "Player");
-  input.dispatchEvent(new Event("input", { bubbles: true }));
-  form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-  await Promise.resolve();
-  await Promise.resolve();
+  act(() => {
+    valueSetter?.call(input, "Player");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  });
+  expect(scannerMocks.scanInventory).not.toHaveBeenCalled();
+  const dialog = container.querySelector('[role="dialog"]');
+  if (!(dialog instanceof HTMLElement)) throw new Error("Category dialog did not open.");
+  await act(async () => {
+    buttonWithText(dialog, "Scan selected").click();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
+function editSelectedCategories(container: HTMLElement, labels: readonly string[]): void {
+  act(() => buttonWithText(container, "Edit scope").click());
+  const dialog = container.querySelector('[role="dialog"]');
+  if (!(dialog instanceof HTMLElement)) throw new Error("Category dialog did not open.");
+  act(() => buttonWithText(dialog, "Clear").click());
+  act(() => {
+    for (const label of labels) selectCategory(dialog, label);
+  });
+  act(() => buttonWithText(dialog, "Save categories").click());
 }
 
 describe("dashboard optional-stage permission handling", () => {
@@ -88,7 +107,6 @@ describe("dashboard optional-stage permission handling", () => {
     document.body.append(container);
     root = createRoot(container);
     act(() => root.render(<App />));
-    act(() => buttonWithText(container, "Clear").click());
   });
 
   afterEach(() => {
@@ -104,11 +122,8 @@ describe("dashboard optional-stage permission handling", () => {
       return successfulResult(categoryIds);
     });
 
-    act(() => {
-      selectCategory(container, "Bundles");
-      selectCategory(container, "Face makeup");
-    });
-    await act(async () => startSelectedScan(container));
+    editSelectedCategories(container, ["Bundles", "Face makeup"]);
+    await startSelectedScan(container);
 
     expect(scannerMocks.scanInventory).toHaveBeenCalledTimes(2);
     expect(scannerMocks.scanInventory.mock.calls.map(([options]) => options.categoryIds)).toEqual([
@@ -126,11 +141,8 @@ describe("dashboard optional-stage permission handling", () => {
       new ScanError("permissionDenied", "Roblox denied this category.", 403),
     );
 
-    act(() => {
-      selectCategory(container, "Bundles");
-      selectCategory(container, "Face makeup");
-    });
-    await act(async () => startSelectedScan(container));
+    editSelectedCategories(container, ["Bundles", "Face makeup"]);
+    await startSelectedScan(container);
 
     expect(scannerMocks.scanInventory).toHaveBeenCalledTimes(2);
     const alert = container.querySelector('[role="alert"]');
@@ -138,5 +150,30 @@ describe("dashboard optional-stage permission handling", () => {
     expect(alert?.textContent).toContain("denied anonymous access to every selected public category");
     expect(alert?.textContent).not.toContain("inventory is viewable");
     expect(container.textContent).not.toContain("Inventory owner");
+  });
+
+  it("keeps category edits transactional and never scans from the edit dialog", () => {
+    act(() => buttonWithText(container, "Edit scope").click());
+    const dialog = container.querySelector('[role="dialog"]');
+    if (!(dialog instanceof HTMLElement)) throw new Error("Category dialog did not open.");
+
+    act(() => buttonWithText(dialog, "Clear").click());
+    expect(buttonWithText(dialog, "Save categories").disabled).toBe(true);
+    expect(dialog.textContent).toContain("Select at least one category to continue.");
+
+    const close = dialog.querySelector('[aria-label="Close category selection"]');
+    if (!(close instanceof HTMLButtonElement)) throw new Error("Close category selection was not rendered.");
+    act(() => close.click());
+    expect(container.textContent).toContain("54 selected");
+
+    act(() => buttonWithText(container, "Edit scope").click());
+    const reopenedDialog = container.querySelector('[role="dialog"]');
+    if (!(reopenedDialog instanceof HTMLElement)) throw new Error("Category dialog did not reopen.");
+    act(() => buttonWithText(reopenedDialog, "Clear").click());
+    act(() => selectCategory(reopenedDialog, "Bundles"));
+    act(() => buttonWithText(reopenedDialog, "Save categories").click());
+
+    expect(container.textContent).toContain("1 selected");
+    expect(scannerMocks.scanInventory).not.toHaveBeenCalled();
   });
 });

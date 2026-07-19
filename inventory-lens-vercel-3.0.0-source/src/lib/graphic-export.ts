@@ -2,6 +2,7 @@ import { safeRobloxThumbnailUrl } from "./endpoints";
 import {
   graphicItemGrid,
   type GraphicBackgroundPreset,
+  type GraphicDesignPreset,
   type GraphicExportDimensions,
   type GraphicFooterCell,
 } from "./graphic-builder";
@@ -24,6 +25,7 @@ export interface GraphicRenderItem {
 
 export interface GraphicRenderModel {
   dimensions: GraphicExportDimensions;
+  designPreset?: GraphicDesignPreset;
   backgroundPreset: GraphicBackgroundPreset;
   headline: string;
   subheadline: string;
@@ -368,9 +370,15 @@ function drawHeadline(
 ): void {
   const headline = model.headline.trim() || `${model.displayName}'s collection`;
   const family = '"Arial Black", Impact, sans-serif';
-  const fontSize = fitTextSize(context, headline, width - 40, height * 0.52, 28, family);
+  const compactIdentity = model.showPlayerIdentity && (
+    model.designPreset === "collectorWall" || model.designPreset === "rareSpotlight"
+  );
+  const leftAligned = model.designPreset === "collectorWall" || model.designPreset === "rareSpotlight";
+  const textWidth = compactIdentity ? width * 0.66 : width;
+  const fontSize = fitTextSize(context, headline, textWidth - 40, height * 0.52, 28, family);
+  const textX = leftAligned ? x + 32 : x + width / 2;
   context.save();
-  context.textAlign = "center";
+  context.textAlign = leftAligned ? "left" : "center";
   context.textBaseline = "middle";
   context.font = `900 ${fontSize}px ${family}`;
   context.lineJoin = "round";
@@ -378,14 +386,28 @@ function drawHeadline(
   context.shadowBlur = Math.max(6, fontSize * 0.12);
   context.lineWidth = Math.max(3, fontSize * 0.055);
   context.strokeStyle = "rgba(0,0,0,.96)";
-  context.strokeText(headline, x + width / 2, y + height * 0.42, width - 40);
-  const gradient = context.createLinearGradient(x, y, x + width, y);
-  gradient.addColorStop(0, "#ffd33d");
-  gradient.addColorStop(0.32, "#ff7ad9");
-  gradient.addColorStop(0.62, "#72e9ff");
-  gradient.addColorStop(1, "#7dff9d");
+  context.strokeText(headline, textX, y + height * 0.42, textWidth - 40);
+  const gradient = context.createLinearGradient(x, y, x + textWidth, y);
+  if (model.designPreset === "collectorWall") {
+    gradient.addColorStop(0, "#f8f5ff");
+    gradient.addColorStop(0.58, "#c9b5ff");
+    gradient.addColorStop(1, "#8b6dff");
+  } else if (model.designPreset === "profileHero") {
+    gradient.addColorStop(0, "#d7c4ff");
+    gradient.addColorStop(0.52, "#ff8be8");
+    gradient.addColorStop(1, "#8edfff");
+  } else if (model.designPreset === "rareSpotlight") {
+    gradient.addColorStop(0, "#fff0a8");
+    gradient.addColorStop(0.48, "#ffd15c");
+    gradient.addColorStop(1, "#ff8ccf");
+  } else {
+    gradient.addColorStop(0, "#ffd33d");
+    gradient.addColorStop(0.32, "#ff7ad9");
+    gradient.addColorStop(0.62, "#72e9ff");
+    gradient.addColorStop(1, "#7dff9d");
+  }
   context.fillStyle = gradient;
-  context.fillText(headline, x + width / 2, y + height * 0.42, width - 40);
+  context.fillText(headline, textX, y + height * 0.42, textWidth - 40);
 
   const subheadline = model.subheadline.trim();
   if (subheadline) {
@@ -393,9 +415,44 @@ function drawHeadline(
     context.font = `800 ${subSize}px Arial, sans-serif`;
     context.shadowBlur = 4;
     context.fillStyle = "rgba(255,255,255,.94)";
-    context.fillText(subheadline, x + width / 2, y + height * 0.77, width - 72);
+    context.fillText(subheadline, textX, y + height * 0.77, textWidth - 48);
   }
   context.restore();
+}
+
+function drawIdentityBadge(
+  context: CanvasRenderingContext2D,
+  model: GraphicRenderModel,
+  avatar: DecodedGraphicImage | undefined,
+  rect: { x: number; y: number; width: number; height: number },
+): void {
+  if (!model.showPlayerIdentity) return;
+  context.save();
+  roundedRect(context, rect.x, rect.y, rect.width, rect.height, Math.max(12, rect.height * 0.16));
+  context.fillStyle = "rgba(8,6,13,.78)";
+  context.fill();
+  context.clip();
+
+  const avatarSize = Math.min(rect.height, rect.width * 0.34);
+  if (avatar) {
+    drawContainedImage(context, avatar, rect.x + 8, rect.y + 5, avatarSize - 10, rect.height - 10, 6);
+  } else {
+    context.fillStyle = "rgba(255,255,255,.08)";
+    context.fillRect(rect.x + 8, rect.y + 8, avatarSize - 16, rect.height - 16);
+  }
+
+  const textX = rect.x + avatarSize + 8;
+  const textWidth = rect.width - avatarSize - 18;
+  context.textAlign = "left";
+  context.textBaseline = "middle";
+  context.font = `900 ${Math.max(14, rect.height * 0.22)}px "Arial Black", Arial, sans-serif`;
+  context.fillStyle = "#ffffff";
+  context.fillText(ellipsize(context, model.displayName, textWidth), textX, rect.y + rect.height * 0.4, textWidth);
+  context.font = `700 ${Math.max(11, rect.height * 0.15)}px Arial, sans-serif`;
+  context.fillStyle = "#bda8ff";
+  context.fillText(ellipsize(context, `@${model.username}`, textWidth), textX, rect.y + rect.height * 0.68, textWidth);
+  context.restore();
+  strokePanel(context, rect.x, rect.y, rect.width, rect.height, Math.max(12, rect.height * 0.16), Math.max(2, rect.width / 220));
 }
 
 function drawAvatarPanel(
@@ -597,6 +654,7 @@ export async function renderInventoryGraphic(
   const context = canvas.getContext("2d", { alpha: false });
   if (!context) throw new Error("This browser could not create the graphic canvas.");
 
+  const designPreset = model.designPreset ?? "showcase";
   drawBackground(context, width, height, model.backgroundPreset ?? "midnight");
   const margin = Math.max(18, Math.round(Math.min(width, height) * 0.025));
   const gap = Math.max(14, Math.round(margin * 0.55));
@@ -611,9 +669,98 @@ export async function renderInventoryGraphic(
   strokePanel(context, margin, margin, contentWidth, headerHeight, 28, Math.max(3, width / 600));
   drawHeadline(context, model, margin, margin, contentWidth, headerHeight);
 
-  if (width / height < 0.92) {
+  const avatar = images.get(model.avatarUrl ?? "");
+  const portrait = width / height < 0.92;
+  if (designPreset === "collectorWall") {
+    const badgeWidth = Math.min(contentWidth * 0.3, Math.max(230, width * 0.22));
+    drawIdentityBadge(context, model, avatar, {
+      x: margin + contentWidth - badgeWidth - gap * 0.55,
+      y: margin + gap * 0.55,
+      width: badgeWidth,
+      height: headerHeight - gap * 1.1,
+    });
+    drawItemPanel(context, model, images, {
+      x: margin,
+      y: bodyY,
+      width: contentWidth,
+      height: bodyHeight,
+    });
+  } else if (designPreset === "profileHero") {
+    if (portrait) {
+      const avatarHeight = Math.max(250, bodyHeight * 0.48);
+      drawAvatarPanel(context, model, avatar, {
+        x: margin,
+        y: bodyY,
+        width: contentWidth,
+        height: avatarHeight,
+      });
+      drawItemPanel(context, model, images, {
+        x: margin,
+        y: bodyY + avatarHeight + gap,
+        width: contentWidth,
+        height: bodyHeight - avatarHeight - gap,
+      });
+    } else {
+      const avatarWidth = Math.max(330, Math.round(contentWidth * 0.42));
+      drawAvatarPanel(context, model, avatar, {
+        x: margin,
+        y: bodyY,
+        width: avatarWidth,
+        height: bodyHeight,
+      });
+      drawItemPanel(context, model, images, {
+        x: margin + avatarWidth + gap,
+        y: bodyY,
+        width: contentWidth - avatarWidth - gap,
+        height: bodyHeight,
+      });
+    }
+  } else if (designPreset === "rareSpotlight") {
+    const badgeWidth = Math.min(contentWidth * 0.3, Math.max(230, width * 0.22));
+    drawIdentityBadge(context, model, avatar, {
+      x: margin + contentWidth - badgeWidth - gap * 0.55,
+      y: margin + gap * 0.55,
+      width: badgeWidth,
+      height: headerHeight - gap * 1.1,
+    });
+    const featuredModel = { ...model, items: model.items.slice(0, 1) };
+    const supportingModel = { ...model, items: model.items.slice(1) };
+    if (portrait) {
+      const featuredHeight = model.items.length > 1 ? bodyHeight * 0.54 : bodyHeight;
+      drawItemPanel(context, featuredModel, images, {
+        x: margin,
+        y: bodyY,
+        width: contentWidth,
+        height: featuredHeight,
+      });
+      if (model.items.length > 1) {
+        drawItemPanel(context, supportingModel, images, {
+          x: margin,
+          y: bodyY + featuredHeight + gap,
+          width: contentWidth,
+          height: bodyHeight - featuredHeight - gap,
+        });
+      }
+    } else {
+      const featureWidth = model.items.length > 1 ? contentWidth * 0.48 : contentWidth;
+      drawItemPanel(context, featuredModel, images, {
+        x: margin,
+        y: bodyY,
+        width: featureWidth,
+        height: bodyHeight,
+      });
+      if (model.items.length > 1) {
+        drawItemPanel(context, supportingModel, images, {
+          x: margin + featureWidth + gap,
+          y: bodyY,
+          width: contentWidth - featureWidth - gap,
+          height: bodyHeight,
+        });
+      }
+    }
+  } else if (portrait) {
     const avatarHeight = Math.max(210, bodyHeight * 0.35);
-    drawAvatarPanel(context, model, images.get(model.avatarUrl ?? ""), {
+    drawAvatarPanel(context, model, avatar, {
       x: margin,
       y: bodyY,
       width: contentWidth,
@@ -627,7 +774,7 @@ export async function renderInventoryGraphic(
     });
   } else {
     const avatarWidth = Math.max(250, Math.round(contentWidth * (width / height > 1.45 ? 0.245 : 0.29)));
-    drawAvatarPanel(context, model, images.get(model.avatarUrl ?? ""), {
+    drawAvatarPanel(context, model, avatar, {
       x: margin,
       y: bodyY,
       width: avatarWidth,

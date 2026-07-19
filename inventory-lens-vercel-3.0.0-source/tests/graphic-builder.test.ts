@@ -7,12 +7,14 @@ import {
   graphicFooterCells,
   graphicItemGrid,
   GRAPHIC_BACKGROUND_OPTIONS,
+  GRAPHIC_DESIGN_OPTIONS,
   MAX_GRAPHIC_ITEMS,
   moveGraphicItem,
   reconcileGraphicItems,
   selectGraphicItem,
   serializeGraphicDraft,
   setGraphicItemLabel,
+  setGraphicDesignPreset,
   setGraphicText,
   toggleGraphicItem,
 } from "../src/lib/graphic-builder";
@@ -145,6 +147,7 @@ describe("graphic builder saved drafts", () => {
       showFooterOwnedCopies: false,
       exportPreset: "landscape",
       backgroundPreset: "midnight",
+      designPreset: "showcase",
       showPlayerIdentity: true,
       showItemNames: false,
       selectedItems: [{ key: "asset:1", label: "First" }],
@@ -236,6 +239,42 @@ describe("graphic builder background presets", () => {
     }));
 
     expect(restored?.backgroundPreset).toBe("midnight");
+  });
+});
+
+describe("graphic builder design presets", () => {
+  it("defaults to Showcase and exposes four bounded, distinct compositions", () => {
+    expect(createGraphicDraft().designPreset).toBe("showcase");
+    expect(GRAPHIC_DESIGN_OPTIONS.map(({ id }) => id)).toEqual([
+      "showcase",
+      "collectorWall",
+      "profileHero",
+      "rareSpotlight",
+    ]);
+    expect(new Set(GRAPHIC_DESIGN_OPTIONS.map(({ id }) => id)).size).toBe(GRAPHIC_DESIGN_OPTIONS.length);
+    expect(GRAPHIC_DESIGN_OPTIONS.every(({ label, description }) => Boolean(label && description))).toBe(true);
+  });
+
+  it("switches only the composition and round-trips every supported design", () => {
+    const original = createGraphicDraft({ headline: "KEEP THIS", backgroundPreset: "royalPurple" });
+    expect(setGraphicDesignPreset(original, "showcase")).toBe(original);
+
+    for (const { id } of GRAPHIC_DESIGN_OPTIONS) {
+      const changed = setGraphicDesignPreset(original, id);
+      expect(changed).toMatchObject({ headline: "KEEP THIS", backgroundPreset: "royalPurple", designPreset: id });
+      expect(deserializeGraphicDraft(serializeGraphicDraft(changed))?.designPreset).toBe(id);
+    }
+  });
+
+  it("restores legacy or unsafe saved values to Showcase", () => {
+    for (const designPreset of [undefined, "unknown", "https://evil.example/layout", { id: "profileHero" }]) {
+      const restored = deserializeGraphicDraft(JSON.stringify({
+        version: 1,
+        designPreset,
+        selectedItems: [],
+      }));
+      expect(restored?.designPreset).toBe("showcase");
+    }
   });
 });
 

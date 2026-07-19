@@ -34,6 +34,7 @@ import {
 } from "./lib/graphic-builder";
 import { externalDataFetch, isWebDeployment } from "./lib/runtime-fetch";
 import { RobloxHttpClient } from "./lib/http";
+import inventoryLensIcon from "./assets/inventory-lens-icon.svg";
 
 const IDLE_PROGRESS: ScanProgress = {
   phase: "idle",
@@ -46,6 +47,7 @@ const SOURCE_REPOSITORY_URL = "https://github.com/ListAI67/InventoryLens";
 
 type ScanState = "idle" | "scanning" | "paused" | "done";
 type DashboardPage = "inventory" | "graphic";
+type ScopeDialogMode = "scan" | "edit";
 export type LimitedFilter = "all" | "limited" | "nonlimited";
 export type CreatorFilter = "all" | "roblox";
 export type SortMode =
@@ -846,7 +848,10 @@ export default function App() {
   const [sort, setSort] = useState<SortMode>("rarest");
   const [aboutOpen, setAboutOpen] = useState(false);
   const [clearStatus, setClearStatus] = useState("");
-  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const [scopeDialogMode, setScopeDialogMode] = useState<ScopeDialogMode | null>(null);
+  const [pendingScanCategories, setPendingScanCategories] = useState(
+    () => new Set<string>(CATEGORY_PRESETS.all),
+  );
   const [activePage, setActivePage] = useState<DashboardPage>("inventory");
   const [graphicDraft, setGraphicDraft] = useState<GraphicBuilderDraft>(() => createGraphicDraft());
 
@@ -856,6 +861,8 @@ export default function App() {
   const lastScanInput = useRef("");
   const aboutTriggerRef = useRef<HTMLButtonElement | null>(null);
   const aboutDialogRef = useRef<HTMLElement | null>(null);
+  const scopeDialogRef = useRef<HTMLElement | null>(null);
+  const scopeReturnFocusRef = useRef<HTMLElement | null>(null);
   const graphicOwnerIdRef = useRef<string | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -1004,6 +1011,8 @@ export default function App() {
     setSort("rarest");
     setActivePage("inventory");
     setGraphicDraft(createGraphicDraft());
+    setScopeDialogMode(null);
+    setPendingScanCategories(new Set(CATEGORY_PRESETS.all));
     graphicOwnerIdRef.current = null;
     lastScanInput.current = "";
     if (typeof window !== "undefined") {
@@ -1039,16 +1048,93 @@ export default function App() {
     [],
   );
 
+  const openScopeDialog = useCallback((mode: ScopeDialogMode, trigger?: HTMLElement | null) => {
+    setPendingScanCategories(new Set(selectedCategories));
+    scopeReturnFocusRef.current = trigger
+      ?? (typeof document !== "undefined" && document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null);
+    setScopeDialogMode(mode);
+  }, [selectedCategories]);
+
+  const closeScopeDialog = useCallback(() => {
+    setScopeDialogMode(null);
+  }, []);
+
+  const handlePendingPreset = useCallback((ids: readonly string[]) => {
+    setPendingScanCategories(new Set(ids));
+  }, []);
+
+  const handlePendingCategoryChange = useCallback((id: string, checked: boolean) => {
+    setPendingScanCategories((current) => {
+      const next = new Set(current);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const handlePendingGroupChange = useCallback((categories: CategoryOption[], checked: boolean) => {
+    setPendingScanCategories((current) => {
+      const next = new Set(current);
+      for (const category of categories) {
+        if (checked) next.add(category.id);
+        else next.delete(category.id);
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!scopeDialogMode) return undefined;
+    const dialog = scopeDialogRef.current;
+    if (!dialog) return undefined;
+
+    const focusableElements = () => Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+    ));
+    const focusTimer = window.setTimeout(() => dialog.querySelector<HTMLElement>("[data-autofocus]")?.focus(), 0);
+    const handleDialogKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeScopeDialog();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = focusableElements();
+      if (!focusable.length) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0]!;
+      const last = focusable.at(-1)!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener("keydown", handleDialogKey);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener("keydown", handleDialogKey);
+      scopeReturnFocusRef.current?.focus();
+    };
+  }, [closeScopeDialog, scopeDialogMode]);
+
   const startScan = useCallback(
-    async (event?: FormEvent) => {
+    async (event?: FormEvent, categoryOverride?: ReadonlySet<string>) => {
       event?.preventDefault();
       const input = playerInput.trim();
+      const categoriesForScan = categoryOverride ?? selectedCategories;
       if (!input) {
         setScanError("Enter a Roblox username, user ID, or profile URL.");
         setScanErrorCode("invalidInput");
         return;
       }
-      if (!selectedCategories.size) {
+      if (!categoriesForScan.size) {
         setScanError("Select at least one inventory category.");
         setScanErrorCode("invalidInput");
         return;
@@ -1058,8 +1144,8 @@ export default function App() {
       const isIncremental =
         Boolean(user) && lastScanInput.current === normalizedInput;
       const categoriesToLoad = isIncremental
-        ? [...selectedCategories].filter((id) => !scannedCategories.has(id))
-        : [...selectedCategories];
+        ? [...categoriesForScan].filter((id) => !scannedCategories.has(id))
+        : [...categoriesForScan];
       const segments = planScanSegments(categoriesToLoad);
 
       if (isIncremental && categoriesToLoad.length === 0) {
@@ -1291,6 +1377,21 @@ export default function App() {
     ],
   );
 
+  const requestScan = useCallback((event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    openScopeDialog("scan");
+  }, [openScopeDialog]);
+
+  const confirmScopeDialog = useCallback(() => {
+    if (!scopeDialogMode || !pendingScanCategories.size) return;
+    const committedCategories = new Set(pendingScanCategories);
+    setSelectedCategories(committedCategories);
+    setScopeDialogMode(null);
+    if (scopeDialogMode === "scan") {
+      void startScan(undefined, committedCategories);
+    }
+  }, [pendingScanCategories, scopeDialogMode, startScan]);
+
   const togglePause = useCallback(() => {
     if (scanState === "paused") {
       pausedRef.current = false;
@@ -1332,7 +1433,7 @@ export default function App() {
       <header className="topbar">
         <button className="brand brand-button" onClick={() => setActivePage("inventory")} type="button" aria-label="Inventory Lens home">
           <span className="brand-mark" aria-hidden="true">
-            <img alt="" src="./icons/icon-48.png" />
+            <img alt="" src={inventoryLensIcon} />
           </span>
           <span>
             <strong>Inventory Lens</strong>
@@ -1392,7 +1493,7 @@ export default function App() {
             <p>Search a player, count exact copies, and surface off-sale, event, gift, and limited items.</p>
           </div>
 
-          <form className="player-search" onSubmit={startScan}>
+          <form className="player-search" onSubmit={requestScan}>
             <div className="search-label-row">
               <label htmlFor="player-input">Search a player</label>
               <span>Username · user ID · profile URL</span>
@@ -1410,52 +1511,39 @@ export default function App() {
                   value={playerInput}
                 />
               </div>
-              <button className="button primary scan-button" disabled={isBusy} type="submit">
+              <button
+                aria-controls="inventory-category-dialog"
+                aria-haspopup="dialog"
+                className="button primary scan-button"
+                disabled={isBusy}
+                onClick={(event) => { scopeReturnFocusRef.current = event.currentTarget; }}
+                type="submit"
+              >
                 {scanButtonLabel} <Icon name="arrow" />
               </button>
             </div>
           </form>
         </section>
 
-        <div className={`workspace${mobileCategoriesOpen ? " scope-open" : ""}`}>
-          <aside className={`category-sidebar${mobileCategoriesOpen ? " mobile-open" : ""}`} aria-label="Inventory category filters">
+        <div className="workspace">
+          <aside className="category-sidebar" aria-label="Inventory scan scope">
             <div className="sidebar-heading">
               <div className="scope-heading-copy">
                 <span>Scan scope</span>
                 <h2>Inventory categories</h2>
-                <p>Choose which item types to include.</p>
+                <p>Choose categories when you scan.</p>
               </div>
               <span>{selectedCategories.size} selected</span>
               <button
-                aria-controls="inventory-category-list"
-                aria-expanded={mobileCategoriesOpen}
+                aria-controls="inventory-category-dialog"
+                aria-haspopup="dialog"
                 className="mobile-category-toggle"
-                onClick={() => setMobileCategoriesOpen((current) => !current)}
+                onClick={(event) => openScopeDialog("edit", event.currentTarget)}
                 type="button"
               >
-                {mobileCategoriesOpen ? "Done" : "Edit scope"}
+                Edit scope
                 <Icon name="chevron" />
               </button>
-            </div>
-
-            <div className="preset-grid" aria-label="Category presets">
-              <button onClick={() => handlePreset(CATEGORY_PRESETS.all)} type="button">All</button>
-              <button onClick={() => handlePreset(CATEGORY_PRESETS.avatar)} type="button">Avatar only</button>
-              <button onClick={() => handlePreset(CATEGORY_PRESETS.noClassicClothing)} type="button">No classic clothing</button>
-              <button onClick={() => handlePreset(CATEGORY_PRESETS.clear)} type="button">Clear</button>
-            </div>
-            <div className="category-list" id="inventory-category-list">
-              {[...categoriesByGroup].map(([group, categories]) => (
-                <CategoryGroup
-                  categories={categories}
-                  itemCounts={itemCounts}
-                  key={group}
-                  name={group}
-                  onCategoryChange={handleCategoryChange}
-                  onGroupChange={handleGroupChange}
-                  selected={selectedCategories}
-                />
-              ))}
             </div>
 
             {isCurrentTarget && missingSelectedCategories.length > 0 && !isBusy ? (
@@ -1750,6 +1838,86 @@ export default function App() {
           </>
         )}
       </main>
+
+      {scopeDialogMode ? (
+        <div
+          className="scope-dialog-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeScopeDialog();
+          }}
+        >
+          <section
+            aria-describedby="scope-dialog-description"
+            aria-labelledby="scope-dialog-title"
+            aria-modal="true"
+            className="scope-dialog"
+            id="inventory-category-dialog"
+            ref={scopeDialogRef}
+            role="dialog"
+          >
+            <header className="scope-dialog-heading">
+              <div>
+                <span className="section-kicker">Scan scope</span>
+                <h2 id="scope-dialog-title">Choose inventory categories</h2>
+                <p id="scope-dialog-description">Select only the item types you want Roblox to load. You can change this later.</p>
+              </div>
+              <div className="scope-dialog-heading-actions">
+                <strong aria-live="polite">{pendingScanCategories.size} selected</strong>
+                <button
+                  aria-label="Close category selection"
+                  className="scope-dialog-close"
+                  data-autofocus
+                  onClick={closeScopeDialog}
+                  type="button"
+                >&times;</button>
+              </div>
+            </header>
+
+            <div className="scope-dialog-presets" aria-label="Category presets">
+              <button onClick={() => handlePendingPreset(CATEGORY_PRESETS.all)} type="button">All</button>
+              <button onClick={() => handlePendingPreset(CATEGORY_PRESETS.avatar)} type="button">Avatar only</button>
+              <button onClick={() => handlePendingPreset(CATEGORY_PRESETS.noClassicClothing)} type="button">No classic clothing</button>
+              <button onClick={() => handlePendingPreset(CATEGORY_PRESETS.clear)} type="button">Clear</button>
+            </div>
+
+            <div className="scope-dialog-body">
+              <div className="category-list" id="inventory-category-list">
+                {[...categoriesByGroup].map(([group, categories]) => (
+                  <CategoryGroup
+                    categories={categories}
+                    itemCounts={itemCounts}
+                    key={group}
+                    name={group}
+                    onCategoryChange={handlePendingCategoryChange}
+                    onGroupChange={handlePendingGroupChange}
+                    selected={pendingScanCategories}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-dialog-footer">
+              <p aria-live="polite">
+                {pendingScanCategories.size
+                  ? `${pendingScanCategories.size} categories ready`
+                  : "Select at least one category to continue."}
+              </p>
+              <div>
+                <button className="button ghost" onClick={closeScopeDialog} type="button">Cancel</button>
+                <button
+                  className="button primary"
+                  disabled={!pendingScanCategories.size}
+                  onClick={confirmScopeDialog}
+                  type="button"
+                >
+                  {scopeDialogMode === "scan" ? "Scan selected" : "Save categories"}
+                  <Icon name="arrow" />
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       {aboutOpen ? (
         <div

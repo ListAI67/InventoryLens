@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defaultGraphicItemLabel, suggestedGraphicItems } from "../src/GraphicBuilder";
 import { downloadCanvasPng, graphicFilename, loadRobloxGraphicImage, renderInventoryGraphic } from "../src/lib/graphic-export";
-import { GRAPHIC_BACKGROUND_OPTIONS } from "../src/lib/graphic-builder";
+import { GRAPHIC_BACKGROUND_OPTIONS, GRAPHIC_DESIGN_OPTIONS } from "../src/lib/graphic-builder";
 import type { GroupedInventoryItem } from "../src/lib/types";
 
 function inventoryItem(overrides: Partial<GroupedInventoryItem> = {}): GroupedInventoryItem {
@@ -180,6 +180,55 @@ describe("graphic image and filename boundaries", () => {
       expect(context.fillRect).toHaveBeenCalled();
       expect(loadImage).not.toHaveBeenCalled();
     }
+  });
+
+  it("dispatches every design to a visibly distinct, asset-free composition", async () => {
+    const traces: string[] = [];
+    for (const { id } of GRAPHIC_DESIGN_OPTIONS) {
+      const gradient = { addColorStop: vi.fn() };
+      const moveTo = vi.fn();
+      const lineTo = vi.fn();
+      const context = new Proxy({
+        createLinearGradient: vi.fn(() => gradient),
+        fillText: vi.fn(),
+        lineTo,
+        measureText: vi.fn((text: string) => ({ width: text.length * 10 })),
+        moveTo,
+      }, {
+        get(target, property, receiver) {
+          if (Reflect.has(target, property)) return Reflect.get(target, property, receiver);
+          return vi.fn();
+        },
+      }) as unknown as CanvasRenderingContext2D;
+      const canvas = {
+        width: 0,
+        height: 0,
+        getContext: vi.fn(() => context),
+      } as unknown as HTMLCanvasElement;
+      const loadImage = vi.fn();
+
+      await renderInventoryGraphic(canvas, {
+        dimensions: { width: 1920, height: 1080 },
+        designPreset: id,
+        headline: "COLLECTION",
+        subheadline: "TWO ITEMS",
+        backgroundPreset: "cleanBlack",
+        footerCells: [],
+        username: "Player",
+        displayName: "Player",
+        showPlayerIdentity: false,
+        showItemNames: true,
+        items: [
+          { key: "asset:1", name: "First", label: "61 COPIES", copies: 1, offSale: true },
+          { key: "asset:2", name: "Second", label: "72 COPIES", copies: 1, offSale: true },
+        ],
+      }, loadImage);
+
+      traces.push(JSON.stringify({ moveTo: moveTo.mock.calls, lineTo: lineTo.mock.calls }));
+      expect(loadImage).not.toHaveBeenCalled();
+    }
+
+    expect(new Set(traces).size).toBe(GRAPHIC_DESIGN_OPTIONS.length);
   });
 
   it("renders only the enabled dynamic footer cells and omits the footer when none are enabled", async () => {

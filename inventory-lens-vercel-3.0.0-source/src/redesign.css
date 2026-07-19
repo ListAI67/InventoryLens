@@ -800,6 +800,149 @@ input:focus-visible + .checkmark {
   margin: 0 18px 16px;
 }
 
+.scope-dialog-overlay {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  padding: 28px;
+  place-items: center;
+  background: rgb(4 2 8 / 78%);
+  backdrop-filter: blur(12px);
+}
+
+.scope-dialog {
+  display: grid;
+  width: min(1180px, 100%);
+  max-height: min(880px, calc(100vh - 56px));
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid var(--rule-strong);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: 0 34px 100px rgb(0 0 0 / 58%), 0 0 0 1px rgb(174 139 255 / 8%);
+}
+
+.scope-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--rule);
+  background:
+    radial-gradient(circle at 82% -30%, rgb(138 88 255 / 18%), transparent 42%),
+    var(--paper);
+}
+
+.scope-dialog-heading h2 {
+  margin: 5px 0 4px;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 36px);
+  letter-spacing: -0.04em;
+}
+
+.scope-dialog-heading p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--slate);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.scope-dialog-heading-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.scope-dialog-heading-actions strong {
+  color: var(--accent-text);
+  font-family: var(--font-utility);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.scope-dialog-close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--rule-strong);
+  border-radius: 9px;
+  background: var(--mineral-soft);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.scope-dialog-close:hover {
+  border-color: var(--cobalt);
+  background: var(--cobalt-soft);
+}
+
+.scope-dialog-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--mineral-soft);
+}
+
+.scope-dialog-presets button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.scope-dialog-presets button:hover {
+  border-color: var(--cobalt);
+  background: var(--cobalt-soft);
+}
+
+.scope-dialog-body {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.scope-dialog .category-list {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 18px 24px 24px;
+}
+
+.scope-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--paper) 92%, var(--cobalt) 8%);
+}
+
+.scope-dialog-footer p {
+  margin: 0;
+  color: var(--slate);
+  font-size: 11px;
+}
+
+.scope-dialog-footer > div {
+  display: flex;
+  gap: 9px;
+}
+
+.scope-dialog-footer .button {
+  min-height: 42px;
+}
+
 .results {
   min-width: 0;
 }
@@ -2089,6 +2232,10 @@ footer p {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .scope-dialog .category-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .profile-summary {
     grid-template-columns: 1fr;
   }
@@ -2162,6 +2309,10 @@ footer p {
   }
 
   .category-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scope-dialog .category-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2337,6 +2488,53 @@ footer p {
   .category-list {
     grid-template-columns: 1fr;
     padding: 12px;
+  }
+
+  .scope-dialog-overlay {
+    padding: 8px;
+    place-items: end center;
+  }
+
+  .scope-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    border-radius: 16px;
+  }
+
+  .scope-dialog-heading {
+    gap: 12px;
+    padding: 17px 16px 14px;
+  }
+
+  .scope-dialog-heading h2 {
+    font-size: 25px;
+  }
+
+  .scope-dialog-heading p,
+  .scope-dialog-heading-actions strong {
+    display: none;
+  }
+
+  .scope-dialog-presets {
+    grid-template-columns: 1fr 1fr;
+    padding: 10px 12px;
+  }
+
+  .scope-dialog .category-list {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .scope-dialog-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    padding: 11px 12px;
+  }
+
+  .scope-dialog-footer > div,
+  .scope-dialog-footer .button {
+    flex: 1;
   }
 
   .sidebar-load {

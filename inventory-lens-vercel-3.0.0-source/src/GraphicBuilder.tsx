@@ -10,6 +10,7 @@ import {
   createGraphicDraft,
   deselectGraphicItem,
   GRAPHIC_BACKGROUND_OPTIONS,
+  GRAPHIC_DESIGN_OPTIONS,
   graphicExportDimensions,
   graphicFooterCells,
   MAX_GRAPHIC_ITEMS,
@@ -17,6 +18,7 @@ import {
   reconcileGraphicItems,
   selectGraphicItem,
   setGraphicBackgroundPreset,
+  setGraphicDesignPreset,
   setGraphicExportPreset,
   setGraphicItemLabel,
   setGraphicText,
@@ -24,6 +26,7 @@ import {
   type GraphicBuilderDraft,
   type GraphicBackgroundPreset,
   type GraphicCurrencyKind,
+  type GraphicDesignPreset,
   type GraphicExportPreset,
   type GraphicOffSaleMetric,
 } from "./lib/graphic-builder";
@@ -281,6 +284,7 @@ export default function GraphicBuilder({ draft, items, onBack, offSaleSummary, s
       void renderInventoryGraphic(renderCanvas, {
         dimensions: graphicExportDimensions(draft.exportPreset),
         backgroundPreset: draft.backgroundPreset,
+        designPreset: draft.designPreset,
         headline: draft.headline,
         subheadline: draft.subheadline,
         footerCells,
@@ -309,7 +313,7 @@ export default function GraphicBuilder({ draft, items, onBack, offSaleSummary, s
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [avatarUrl, draft.backgroundPreset, draft.exportPreset, draft.headline, draft.showItemNames, draft.showPlayerIdentity, draft.subheadline, footerCells, renderItems, user]);
+  }, [avatarUrl, draft.backgroundPreset, draft.designPreset, draft.exportPreset, draft.headline, draft.showItemNames, draft.showPlayerIdentity, draft.subheadline, footerCells, renderItems, user]);
 
   if (!user) return <GraphicEmptyState onBack={onBack} />;
 
@@ -365,6 +369,33 @@ export default function GraphicBuilder({ draft, items, onBack, offSaleSummary, s
           </section>
 
           <section className="graphic-control-section graphic-output-controls">
+            <div className="graphic-control-heading"><strong>Design</strong><span>Four distinct compositions</span></div>
+            <fieldset className="graphic-design-picker">
+              <legend>Graphic design</legend>
+              <div className="graphic-design-grid">
+                {GRAPHIC_DESIGN_OPTIONS.map((option) => (
+                  <label className={`graphic-design-option${draft.designPreset === option.id ? " selected" : ""}`} key={option.id}>
+                    <input
+                      checked={draft.designPreset === option.id}
+                      name="graphic-design"
+                      onChange={() => setDraft((current) => setGraphicDesignPreset(current, option.id as GraphicDesignPreset))}
+                      type="radio"
+                      value={option.id}
+                    />
+                    <span aria-hidden="true" className={`graphic-design-mini design-${option.id}`}>
+                      <i className="mini-head" />
+                      <i className="mini-avatar" />
+                      <i className="mini-items"><b /><b /><b /><b /></i>
+                    </span>
+                    <span className="graphic-design-copy">
+                      <strong>{option.label}</strong>
+                      <small>{option.description}</small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <div className="graphic-format-divider" />
             <div className="graphic-control-heading"><strong>Format</strong><span>High-resolution PNG</span></div>
             <label>
               <span>Canvas</span>
@@ -411,7 +442,7 @@ export default function GraphicBuilder({ draft, items, onBack, offSaleSummary, s
           </section>
 
           <section className="graphic-control-section graphic-footer-controls">
-            <div className="graphic-control-heading"><strong>Bottom bar</strong><span>Choose what appears</span></div>
+            <div className="graphic-control-heading"><strong>Stats &amp; footer</strong><span>Choose what appears</span></div>
 
             <div className="graphic-footer-block">
               <label className="graphic-check-row">

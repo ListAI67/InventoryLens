@@ -3,7 +3,7 @@
   "description": "Public Roblox inventory analyzer for exact copies, collector context, and local collection graphics.",
   "license": "MIT",
   "private": true,
-  "version": "3.2.1",
+  "version": "3.2.2",
   "type": "module",
   "packageManager": "pnpm@11.9.0",
   "engines": {

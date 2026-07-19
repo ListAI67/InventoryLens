@@ -8,6 +8,18 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.2.2] - 2026-07-19
+
+### Added
+
+- Added Showcase, Collector Wall, Profile Hero, and Rare Spotlight compositions to Graphic Builder with visual layout cards and distinct exported-canvas geometry.
+- Added a focused, responsive category dialog that opens from Scan Inventory and keeps canceled selections separate from the active scan scope.
+
+### Changed
+
+- Reduced the always-visible category area to a compact scope summary with an Edit scope action.
+- Renamed the builder bottom-bar section to Stats & footer and bundled the web header icon so it renders correctly in local and hosted builds.
+
 ## [3.2.1] - 2026-07-19
 
 ### Changed

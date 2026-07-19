@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <title>Inventory Lens</title>
+  <g fill="#241d32" stroke="#9d8bbd" stroke-width="4">
+    <rect x="14" y="14" width="38" height="38" rx="8"/>
+    <rect x="60" y="14" width="38" height="38" rx="8"/>
+    <rect x="14" y="60" width="38" height="38" rx="8"/>
+  </g>
+  <circle cx="79" cy="78" r="25" fill="#100c18" stroke="#8b5cf6" stroke-width="10"/>
+  <path d="M97 96 114 113" stroke="#b794ff" stroke-width="11" stroke-linecap="round"/>
+</svg>
