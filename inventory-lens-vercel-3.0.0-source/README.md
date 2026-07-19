@@ -220,7 +220,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. Pull requests m
 
 ## Release status
 
-The current release is version 3.2.6. Source and documentation are public at [ListAI67/InventoryLens](https://github.com/ListAI67/InventoryLens) under the MIT License. Browser-store distribution still requires the remaining support, privacy-policy hosting, browser-minimum, screenshot/promotional-asset, and store-account fields identified in the documentation.
+The current release is version 3.2.7. Source and documentation are public at [ListAI67/InventoryLens](https://github.com/ListAI67/InventoryLens) under the MIT License. Browser-store distribution still requires the remaining support, privacy-policy hosting, browser-minimum, screenshot/promotional-asset, and store-account fields identified in the documentation.
 
 ## Disclaimer
 
