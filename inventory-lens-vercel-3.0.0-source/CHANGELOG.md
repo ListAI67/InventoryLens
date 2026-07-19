@@ -8,6 +8,16 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.2.3] - 2026-07-19
+
+### Added
+
+- Added a permanent, faint Inventory Lens URL watermark behind every item image in Graphic Builder previews and exports.
+
+### Security
+
+- Kept the watermark inside the canvas renderer with no draft field or interface control that can disable or replace it.
+
 ## [3.2.2] - 2026-07-19
 
 ### Added

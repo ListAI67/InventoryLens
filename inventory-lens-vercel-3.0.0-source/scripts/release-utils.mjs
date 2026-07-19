@@ -25,6 +25,9 @@ const REQUIRED_CONTENT_SCRIPT_MATCHES = Object.freeze([
 const ALLOWED_PACKAGED_URL_HOSTS = new Set([
   "catalog.roblox.com",
   "github.com",
+  // Display-only provenance text baked into generated canvases; this does not
+  // grant a host permission or permit a runtime request to the web app.
+  "inventory-lens.vercel.app",
   "inventory.roblox.com",
   "react.dev",
   "roblox.com",

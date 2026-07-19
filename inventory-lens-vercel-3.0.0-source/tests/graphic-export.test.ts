@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defaultGraphicItemLabel, suggestedGraphicItems } from "../src/GraphicBuilder";
-import { downloadCanvasPng, graphicFilename, loadRobloxGraphicImage, renderInventoryGraphic } from "../src/lib/graphic-export";
+import {
+  downloadCanvasPng,
+  GRAPHIC_WATERMARK_TEXT,
+  graphicFilename,
+  loadRobloxGraphicImage,
+  renderInventoryGraphic,
+} from "../src/lib/graphic-export";
 import { GRAPHIC_BACKGROUND_OPTIONS, GRAPHIC_DESIGN_OPTIONS } from "../src/lib/graphic-builder";
 import type { GroupedInventoryItem } from "../src/lib/types";
 
@@ -89,6 +95,78 @@ describe("graphic captions and suggestions", () => {
 
 describe("graphic image and filename boundaries", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it("always paints the fixed site watermark behind item art in every design and dimension", async () => {
+    for (const dimensions of [
+      { width: 1920, height: 1080 },
+      { width: 1080, height: 1080 },
+      { width: 1080, height: 1350 },
+    ]) {
+      for (const { id } of GRAPHIC_DESIGN_OPTIONS) {
+        const paintOrder: string[] = [];
+        const gradient = { addColorStop: vi.fn() };
+        const fillText = vi.fn((text: string) => paintOrder.push(`text:${text}`));
+        const drawImage = vi.fn(() => paintOrder.push("image"));
+        const context = new Proxy({
+          createLinearGradient: vi.fn(() => gradient),
+          createRadialGradient: vi.fn(() => gradient),
+          drawImage,
+          fillText,
+          measureText: vi.fn((text: string) => ({ width: text.length * 8 })),
+        }, {
+          get(target, property, receiver) {
+            if (Reflect.has(target, property)) return Reflect.get(target, property, receiver);
+            return vi.fn();
+          },
+        }) as unknown as CanvasRenderingContext2D;
+        const canvas = {
+          width: 0,
+          height: 0,
+          getContext: vi.fn(() => context),
+        } as unknown as HTMLCanvasElement;
+        const decodedImage = { source: {} as CanvasImageSource, width: 420, height: 420 };
+        const loadImage = vi.fn(async () => decodedImage);
+
+        await renderInventoryGraphic(canvas, {
+          dimensions,
+          designPreset: id,
+          headline: "COLLECTION",
+          subheadline: "TWO ITEMS",
+          backgroundPreset: "royalPurple",
+          footerCells: [],
+          username: "Player",
+          displayName: "Player",
+          showPlayerIdentity: false,
+          showItemNames: true,
+          items: [
+            {
+              key: "asset:1",
+              name: "First",
+              label: "61 COPIES",
+              thumbnailUrl: "https://tr.rbxcdn.com/item-1.png",
+              copies: 1,
+              offSale: true,
+            },
+            {
+              key: "asset:2",
+              name: "Second",
+              label: "72 COPIES",
+              thumbnailUrl: "https://tr.rbxcdn.com/item-2.png",
+              copies: 1,
+              offSale: true,
+            },
+          ],
+        }, loadImage);
+
+        const watermarkIndex = paintOrder.indexOf(`text:${GRAPHIC_WATERMARK_TEXT}`);
+        const firstItemImageIndex = paintOrder.indexOf("image");
+        expect(watermarkIndex, `${id} ${dimensions.width}x${dimensions.height}`).toBeGreaterThanOrEqual(0);
+        expect(firstItemImageIndex, `${id} ${dimensions.width}x${dimensions.height}`).toBeGreaterThan(watermarkIndex);
+        expect(fillText.mock.calls.filter(([text]) => text === GRAPHIC_WATERMARK_TEXT)).toHaveLength(2);
+        expect(loadImage).not.toHaveBeenCalledWith(GRAPHIC_WATERMARK_TEXT);
+      }
+    }
+  });
 
   it("renders every supported preset and constrains long text to its bordered cells", async () => {
     for (const dimensions of [

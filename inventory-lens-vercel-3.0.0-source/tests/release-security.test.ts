@@ -78,6 +78,7 @@ describe("packaged URL and tracker policy", () => {
       "https://roblox.fandom.com/api.php",
       "https://www.roblox.com/catalog/1",
       "https://github.com/ListAI67/InventoryLens",
+      "https://inventory-lens.vercel.app/",
       "https://tr.rbxcdn.com/image.png",
       "https://react.dev/errors/418",
       "http://www.w3.org/2000/svg",

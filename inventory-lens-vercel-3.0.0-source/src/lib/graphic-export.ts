@@ -46,6 +46,13 @@ export interface GraphicImageLoadOptions {
 export type GraphicImageLoader = (url: string) => Promise<DecodedGraphicImage | undefined>;
 
 /**
+ * Permanent provenance mark for every generated item panel. This deliberately
+ * lives in the renderer rather than builder state so exported graphics cannot
+ * disable, rename, or omit it through a UI or saved draft.
+ */
+export const GRAPHIC_WATERMARK_TEXT = "https://inventory-lens.vercel.app/";
+
+/**
  * Loads only validated Roblox CDN raster images with anonymous CORS enabled.
  * Roblox's image CDN allows anonymous GETs, so the resulting canvas remains
  * exportable without broadening the extension's programmatic host access.
@@ -500,6 +507,26 @@ function drawAvatarPanel(
   strokePanel(context, rect.x, rect.y, rect.width, rect.height, 24, Math.max(3, rect.width / 150));
 }
 
+function drawItemPanelWatermark(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): void {
+  context.save();
+  roundedRect(context, x, y, width, height, Math.max(2, width * 0.025));
+  context.clip();
+  context.translate(x + width / 2, y + height * 0.62);
+  context.rotate((-8 * Math.PI) / 180);
+  context.fillStyle = "rgba(196,181,253,.14)";
+  context.font = `800 ${Math.max(10, Math.min(26, width / 18))}px "Cascadia Mono", Consolas, monospace`;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(GRAPHIC_WATERMARK_TEXT, 0, 0, Math.max(1, width * 0.86));
+  context.restore();
+}
+
 function drawItemPanel(
   context: CanvasRenderingContext2D,
   model: GraphicRenderModel,
@@ -542,6 +569,9 @@ function drawItemPanel(
     const labelHeight = Math.max(30, cellHeight * 0.25);
     const imageHeight = cellHeight - itemNameHeight - labelHeight;
     const image = images.get(item.thumbnailUrl ?? "");
+
+    // Paint immutable provenance inside every tile before its thumbnail.
+    drawItemPanelWatermark(context, x, y, cellWidth, imageHeight);
 
     context.save();
     context.shadowColor = "rgba(104,220,255,.16)";

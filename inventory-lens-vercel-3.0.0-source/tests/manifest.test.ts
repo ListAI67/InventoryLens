@@ -23,9 +23,9 @@ const manifest = JSON.parse(manifestText) as ExtensionManifest;
 const packageMetadata = JSON.parse(packageText) as { version: string };
 
 describe("MV3 permission boundary", () => {
-  it("keeps the 3.2.2 Inventory Lens release version aligned", () => {
+  it("keeps the 3.2.3 Inventory Lens release version aligned", () => {
     expect(manifest.manifest_version).toBe(3);
-    expect(manifest.version).toBe("3.2.2");
+    expect(manifest.version).toBe("3.2.3");
     expect(manifest.short_name).toBe("Inventory Lens");
     expect(packageMetadata.version).toBe(manifest.version);
     expect(manifest.action).toMatchObject({
