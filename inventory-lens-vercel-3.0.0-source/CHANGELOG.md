@@ -8,6 +8,16 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.2.0] - 2026-07-19
+
+### Changed
+
+- Rebuilt the dashboard as a light collector contact sheet with a new palette, type scale, spacing system, and responsive shell.
+- Replaced the permanent category sidebar with a collapsed full-width scan-scope editor.
+- Simplified single-option category groups into direct checkbox rows and kept multi-option groups collapsed initially.
+- Added a guided specimen-style empty state and coral exact-copy index tabs for item cards.
+- Restyled scan progress, player summaries, filters, item metadata, dialogs, and Graphic Builder controls as one cohesive interface.
+
 ## [3.1.0] - 2026-07-19
 
 ### Changed

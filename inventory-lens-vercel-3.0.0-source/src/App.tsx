@@ -542,6 +542,20 @@ function CategoryGroup({
     [partiallyChecked],
   );
 
+  if (categories.length === 1) {
+    const [category] = categories;
+    return (
+      <div className="category-group category-group-single">
+        <CategoryCheckbox
+          category={{ ...category, label: name }}
+          checked={selected.has(category.id)}
+          count={itemCounts.get(category.id)}
+          onChange={(checked) => onCategoryChange(category.id, checked)}
+        />
+      </div>
+    );
+  }
+
   return (
     <details className="category-group">
       <summary>
@@ -561,7 +575,7 @@ function CategoryGroup({
           <span>{name}</span>
         </label>
         <span className="group-total">
-          {checkedCount}/{categories.length}
+          {allChecked ? `${categories.length} types` : `${checkedCount} of ${categories.length}`}
         </span>
       </summary>
       <div className="category-options">
@@ -1373,12 +1387,16 @@ export default function App() {
           <>
         <section className="scanner-panel" aria-labelledby="scanner-title">
           <div className="scanner-heading">
-            <h1 id="scanner-title">Scan inventory</h1>
-            <p>Count copies and review off-sale, gift, and collector signals.</p>
+            <span className="scanner-eyebrow">Roblox collection index</span>
+            <h1 id="scanner-title">Find the pieces that matter.</h1>
+            <p>Search a player, count exact copies, and surface off-sale, event, gift, and limited items.</p>
           </div>
 
           <form className="player-search" onSubmit={startScan}>
-            <label htmlFor="player-input">Player</label>
+            <div className="search-label-row">
+              <label htmlFor="player-input">Search a player</label>
+              <span>Username · user ID · profile URL</span>
+            </div>
             <div className="search-row">
               <div className="input-with-icon player-input">
                 <Icon name="search" />
@@ -1387,7 +1405,7 @@ export default function App() {
                   autoComplete="off"
                   id="player-input"
                   onChange={(event) => setPlayerInput(event.target.value)}
-                  placeholder="Username, user ID, or profile URL"
+                  placeholder="Enter a username, ID, or Roblox profile URL"
                   spellCheck={false}
                   value={playerInput}
                 />
@@ -1399,11 +1417,13 @@ export default function App() {
           </form>
         </section>
 
-        <div className="workspace">
+        <div className={`workspace${mobileCategoriesOpen ? " scope-open" : ""}`}>
           <aside className={`category-sidebar${mobileCategoriesOpen ? " mobile-open" : ""}`} aria-label="Inventory category filters">
             <div className="sidebar-heading">
-              <div>
-                <h2>Categories</h2>
+              <div className="scope-heading-copy">
+                <span>Scan scope</span>
+                <h2>Inventory categories</h2>
+                <p>Choose which item types to include.</p>
               </div>
               <span>{selectedCategories.size} selected</span>
               <button
@@ -1413,7 +1433,7 @@ export default function App() {
                 onClick={() => setMobileCategoriesOpen((current) => !current)}
                 type="button"
               >
-                {mobileCategoriesOpen ? "Hide" : "Show"}
+                {mobileCategoriesOpen ? "Done" : "Edit scope"}
                 <Icon name="chevron" />
               </button>
             </div>
@@ -1707,8 +1727,22 @@ export default function App() {
               </>
             ) : !isBusy ? (
               <div className="empty-state compact-empty initial-empty">
-                <h2>No inventory loaded</h2>
-                <p>Enter a username, user ID, or profile URL, then scan the selected categories.</p>
+                <div className="contact-sheet-mark" aria-hidden="true">
+                  <span className="contact-cell contact-cell-a">A01</span>
+                  <span className="contact-cell contact-cell-b">B02</span>
+                  <span className="contact-cell contact-cell-c">C03</span>
+                  <span className="contact-lens"><Icon name="inventory" /></span>
+                </div>
+                <span className="empty-kicker">Ready to scan</span>
+                <h2 id="results-heading">Start with a Roblox player.</h2>
+                <p>Set the scan scope, enter a player above, and Inventory Lens will build their collection view.</p>
+                <div className="empty-route" aria-label="How to begin">
+                  <span>Choose categories</span>
+                  <Icon name="arrow" />
+                  <span>Enter a player</span>
+                  <Icon name="arrow" />
+                  <span>Scan inventory</span>
+                </div>
               </div>
             ) : null}
           </section>

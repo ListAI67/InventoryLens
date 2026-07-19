@@ -629,7 +629,7 @@ describe("dashboard public access guidance", () => {
     expect(markup).not.toContain("Local processing");
     expect(markup).not.toContain("No login needed");
     expect(markup).not.toContain("without a login or API key");
-    expect(markup).toContain("No inventory loaded");
+    expect(markup).toContain("Start with a Roblox player.");
     expect(markup).not.toContain("Test &amp; save key");
     expect(markup).not.toContain("Forget key");
     expect(markup).not.toContain("Roblox API key");
@@ -652,6 +652,15 @@ describe("dashboard public access guidance", () => {
 
     expect(categoryGroups.length).toBeGreaterThan(0);
     expect(categoryGroups.every((tag) => !/\sopen(?:=|\s|>)/.test(tag))).toBe(true);
+  });
+
+  it("keeps the full scan-scope editor closed initially", () => {
+    const markup = renderToStaticMarkup(<App />);
+
+    expect(markup).toContain('aria-controls="inventory-category-list"');
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain("Edit scope");
+    expect(markup).not.toContain("mobile-open");
   });
 
   it("exposes the inventory and Graphic Builder pages without a second extension entry point", () => {
