@@ -509,21 +509,18 @@ function drawAvatarPanel(
 
 function drawItemPanelWatermark(
   context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
+  rect: { x: number; y: number; width: number; height: number },
 ): void {
   context.save();
-  roundedRect(context, x, y, width, height, Math.max(2, width * 0.025));
+  roundedRect(context, rect.x, rect.y, rect.width, rect.height, 24);
   context.clip();
-  context.translate(x + width / 2, y + height * 0.62);
+  context.translate(rect.x + rect.width / 2, rect.y + rect.height * 0.52);
   context.rotate((-8 * Math.PI) / 180);
-  context.fillStyle = "rgba(196,181,253,.14)";
-  context.font = `800 ${Math.max(10, Math.min(26, width / 18))}px "Cascadia Mono", Consolas, monospace`;
+  context.fillStyle = "rgba(196,181,253,.12)";
+  context.font = `800 ${Math.max(11, Math.min(22, rect.width / 70))}px "Cascadia Mono", Consolas, monospace`;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(GRAPHIC_WATERMARK_TEXT, 0, 0, Math.max(1, width * 0.86));
+  context.fillText(GRAPHIC_WATERMARK_TEXT, 0, 0, Math.max(1, rect.width * 0.48));
   context.restore();
 }
 
@@ -532,12 +529,15 @@ function drawItemPanel(
   model: GraphicRenderModel,
   images: ReadonlyMap<string, DecodedGraphicImage | undefined>,
   rect: { x: number; y: number; width: number; height: number },
+  showWatermark = false,
 ): void {
   context.save();
   roundedRect(context, rect.x, rect.y, rect.width, rect.height, 24);
   context.fillStyle = "rgba(4,7,11,.5)";
   context.fill();
   context.clip();
+
+  if (showWatermark) drawItemPanelWatermark(context, rect);
 
   const portraitPanel = rect.height > rect.width * 1.05;
   const grid = graphicItemGrid(model.items.length, portraitPanel ? "portrait" : "wide");
@@ -569,9 +569,6 @@ function drawItemPanel(
     const labelHeight = Math.max(30, cellHeight * 0.25);
     const imageHeight = cellHeight - itemNameHeight - labelHeight;
     const image = images.get(item.thumbnailUrl ?? "");
-
-    // Paint immutable provenance inside every tile before its thumbnail.
-    drawItemPanelWatermark(context, x, y, cellWidth, imageHeight);
 
     context.save();
     context.shadowColor = "rgba(104,220,255,.16)";
@@ -714,7 +711,7 @@ export async function renderInventoryGraphic(
       y: bodyY,
       width: contentWidth,
       height: bodyHeight,
-    });
+    }, true);
   } else if (designPreset === "profileHero") {
     if (portrait) {
       const avatarHeight = Math.max(250, bodyHeight * 0.48);
@@ -729,7 +726,7 @@ export async function renderInventoryGraphic(
         y: bodyY + avatarHeight + gap,
         width: contentWidth,
         height: bodyHeight - avatarHeight - gap,
-      });
+      }, true);
     } else {
       const avatarWidth = Math.max(330, Math.round(contentWidth * 0.42));
       drawAvatarPanel(context, model, avatar, {
@@ -743,7 +740,7 @@ export async function renderInventoryGraphic(
         y: bodyY,
         width: contentWidth - avatarWidth - gap,
         height: bodyHeight,
-      });
+      }, true);
     }
   } else if (designPreset === "rareSpotlight") {
     const badgeWidth = Math.min(contentWidth * 0.3, Math.max(230, width * 0.22));
@@ -762,7 +759,7 @@ export async function renderInventoryGraphic(
         y: bodyY,
         width: contentWidth,
         height: featuredHeight,
-      });
+      }, true);
       if (model.items.length > 1) {
         drawItemPanel(context, supportingModel, images, {
           x: margin,
@@ -778,7 +775,7 @@ export async function renderInventoryGraphic(
         y: bodyY,
         width: featureWidth,
         height: bodyHeight,
-      });
+      }, true);
       if (model.items.length > 1) {
         drawItemPanel(context, supportingModel, images, {
           x: margin + featureWidth + gap,
@@ -801,7 +798,7 @@ export async function renderInventoryGraphic(
       y: bodyY + avatarHeight + gap,
       width: contentWidth,
       height: bodyHeight - avatarHeight - gap,
-    });
+    }, true);
   } else {
     const avatarWidth = Math.max(250, Math.round(contentWidth * (width / height > 1.45 ? 0.245 : 0.29)));
     drawAvatarPanel(context, model, avatar, {
@@ -815,7 +812,7 @@ export async function renderInventoryGraphic(
       y: bodyY,
       width: contentWidth - avatarWidth - gap,
       height: bodyHeight,
-    });
+    }, true);
   }
   if (hasFooter) {
     drawFooter(context, model, { x: margin, y: footerY, width: contentWidth, height: footerHeight });

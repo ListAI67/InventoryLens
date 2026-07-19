@@ -96,7 +96,7 @@ describe("graphic captions and suggestions", () => {
 describe("graphic image and filename boundaries", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("always paints the fixed site watermark behind item art in every design and dimension", async () => {
+  it("paints exactly one fixed site watermark on the back frame in every design and dimension", async () => {
     for (const dimensions of [
       { width: 1920, height: 1080 },
       { width: 1080, height: 1080 },
@@ -162,7 +162,7 @@ describe("graphic image and filename boundaries", () => {
         const firstItemImageIndex = paintOrder.indexOf("image");
         expect(watermarkIndex, `${id} ${dimensions.width}x${dimensions.height}`).toBeGreaterThanOrEqual(0);
         expect(firstItemImageIndex, `${id} ${dimensions.width}x${dimensions.height}`).toBeGreaterThan(watermarkIndex);
-        expect(fillText.mock.calls.filter(([text]) => text === GRAPHIC_WATERMARK_TEXT)).toHaveLength(2);
+        expect(fillText.mock.calls.filter(([text]) => text === GRAPHIC_WATERMARK_TEXT)).toHaveLength(1);
         expect(loadImage).not.toHaveBeenCalledWith(GRAPHIC_WATERMARK_TEXT);
       }
     }

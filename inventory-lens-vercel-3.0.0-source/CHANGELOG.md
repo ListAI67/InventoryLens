@@ -8,6 +8,13 @@ The format is based on Keep a Changelog. Release dates and comparison links are 
 
 No changes recorded.
 
+## [3.2.5] - 2026-07-19
+
+### Fixed
+
+- Replaced per-item watermarks with one faint Inventory Lens URL on the main item-panel background.
+- Kept the watermark behind all item artwork and limited split Graphic Builder layouts to one mark per finished graphic.
+
 ## [3.2.4] - 2026-07-19
 
 ### Fixed
